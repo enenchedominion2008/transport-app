@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominion Transport Solutions · Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh; width: 100%; overflow-x: hidden; background: #0a1c2b;
+    }
+
+    /* ---- BACKGROUND ---- */
+    .page-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+    .page-bg img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; object-fit: cover;
+      object-position: center; display: block;
+    }
+    .page-bg::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        rgba(10, 28, 43, 0.85) 0%,
+        rgba(10, 28, 43, 0.65) 50%,
+        rgba(10, 28, 43, 0.88) 100%);
+      z-index: 1;
+    }
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10, 28, 43, 0.55);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand { color: #fff; font-weight: 600; font-size: 1.15rem; display: flex; gap: 0.35rem; }
+    .brand .accent { font-weight: 300; color: #7dc9f0; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    .user-chip {
+      color: #fff; font-size: 0.85rem; font-weight: 500;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .user-chip .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #fff;
+    }
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.12); color: #fff;
+      text-decoration: none; padding: 0.45rem 1rem;
+      border-radius: 40px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: background 0.2s;
+    }
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* ---- WRAPPER ---- */
+    .page-wrap {
+      position: relative; z-index: 2;
+      min-height: 100vh; width: 100%;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 6rem 1.5rem 3rem;
+    }
+    .dash-card {
+      width: 100%; max-width: 720px;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 28px;
+      box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      animation: cardIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- TABS ---- */
+    .tabs {
+      display: flex; gap: 0.4rem; margin-bottom: 1.75rem;
+      background: #f1f6fa; padding: 0.35rem; border-radius: 40px;
+    }
+    .tab {
+      flex: 1; padding: 0.7rem 1rem;
+      background: transparent; border: none; cursor: pointer;
+      border-radius: 40px; font-family: inherit; font-size: 0.85rem;
+      font-weight: 600; color: #5e7a8c; transition: all 0.2s;
+    }
+    .tab:hover { color: #0a2a3b; }
+    .tab.active {
+      background: #ffffff; color: #0a2a3b;
+      box-shadow: 0 4px 12px -4px rgba(10, 42, 59, 0.15);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.3s ease both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .card-title {
+      font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em;
+      color: #0b2a3b; margin-bottom: 0.25rem;
+    }
+    .card-sub {
+      font-size: 0.88rem; color: #5e7a8c; margin-bottom: 1.5rem;
+      border-left: 3px solid #2d9cdb; padding-left: 0.75rem;
+    }
+
+    /* ---- FORM ---- */
+    .input-group { margin-bottom: 1.1rem; display: flex; flex-direction: column; }
+    .input-group label {
+      font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #2c4a5e; margin-bottom: 0.4rem;
+    }
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+      padding: 0.8rem 1rem; font-size: 0.92rem;
+      border: 1.5px solid #dae2e9; border-radius: 14px;
+      background: #f9fcff; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      font-family: inherit; color: #0b2a3b;
+    }
+    .input-group input:focus,
+    .input-group select:focus,
+    .input-group textarea:focus {
+      border-color: #2d9cdb; background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
+    }
+    .input-group input::placeholder,
+    .input-group textarea::placeholder { color: #9eb4c4; font-weight: 300; }
+    .input-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e7a8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 1rem center;
+      background-size: 1rem; cursor: pointer;
+    }
+    .input-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+    /* collapsible "other task" */
+    .other-task {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+      margin-bottom: 0;
+    }
+    .other-task.show { max-height: 200px; opacity: 1; margin-bottom: 1.1rem; }
+
+    /* ---- PRICE BREAKDOWN ---- */
+    .price-box {
+      padding: 0; margin: 0;
+      background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
+      border: 1.5px solid #b8dffa; border-radius: 16px;
+      opacity: 0; max-height: 0; overflow: hidden;
+      transition: all 0.35s ease;
+    }
+    .price-box.show {
+      opacity: 1; max-height: 260px;
+      padding: 1rem 1.1rem; margin-top: 0.6rem; margin-bottom: 1rem;
+    }
+    .price-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.88rem; padding: 0.3rem 0; color: #2c4a5e;
+    }
+    .price-row .value { font-weight: 600; color: #0b2a3b; }
+    .price-row.muted { opacity: 0.55; }
+    .price-divider { height: 1px; background: #b8dffa; margin: 0.5rem 0; }
+    .price-total {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1rem; padding-top: 0.4rem;
+    }
+    .price-total .label {
+      font-weight: 600; color: #0a2a3b;
+      text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.78rem;
+    }
+    .price-total .value { font-size: 1.25rem; font-weight: 700; color: #0a2a3b; }
+
+    /* ---- STEP BUTTON ---- */
+    .primary-btn {
+      width: 100%; padding: 0.95rem;
+      background: #0a2a3b; color: #ffffff;
+      font-weight: 600; font-size: 0.95rem; border: none;
+      border-radius: 40px; cursor: pointer;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      letter-spacing: 0.03em;
+      box-shadow: 0 10px 20px -8px rgba(10, 42, 59, 0.4);
+      margin-bottom: 0.75rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .primary-btn:hover { background: #1d4b63; }
+    .primary-btn:active { transform: scale(0.98); }
+    .primary-btn:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+    .primary-btn.accent {
+      background: #2d9cdb;
+      box-shadow: 0 10px 20px -8px rgba(45, 156, 219, 0.5);
+    }
+    .primary-btn.accent:hover { background: #1d7bb0; }
+
+    .ghost-btn {
+      width: 100%; padding: 0.95rem;
+      background: transparent; color: #5e7a8c;
+      font-weight: 600; font-size: 0.9rem;
+      border: 1.5px solid #dae2e9; border-radius: 40px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ghost-btn:hover { background: #f3f7fa; border-color: #b8d4e8; color: #2c4a5e; }
+
+    /* ---- BANK DETAILS BLOCK ---- */
+    .bank-block {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.4s ease, margin 0.3s ease;
+      margin: 0;
+    }
+    .bank-block.show {
+      max-height: 1000px; opacity: 1;
+      margin: 0.75rem 0 1.1rem;
+    }
+    .bank-info {
+      background: #0a2a3b; color: #ffffff;
+      padding: 1.25rem 1.4rem; border-radius: 18px;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 14px 30px -10px rgba(10, 42, 59, 0.5);
+    }
+    .bank-info h4 {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #7dc9f0; margin-bottom: 0.75rem;
+    }
+    .bank-info .line {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.9rem; padding: 0.35rem 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+    }
+    .bank-info .line:last-child { border-bottom: none; }
+    .bank-info .line span:first-child { color: rgba(255, 255, 255, 0.65); }
+    .bank-info .line span:last-child { font-weight: 600; }
+    .bank-info .amount {
+      font-size: 1.35rem; font-weight: 700; color: #7dc9f0;
+    }
+    .copy-hint {
+      font-size: 0.72rem; color: rgba(255, 255, 255, 0.5);
+      margin-top: 0.6rem; text-align: center;
+    }
+
+    /* ---- STATUS BADGES ---- */
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.3rem 0.75rem; border-radius: 40px;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge.pending  { background: #fff6e5; color: #b54708; }
+    .badge.approved { background: #e7f8ef; color: #067647; }
+    .badge.rejected { background: #fdecec; color: #b42318; }
+
+    /* ---- BOOKINGS LIST ---- */
+    .booking-item {
+      padding: 1rem 1.1rem; margin-bottom: 0.75rem;
+      border-radius: 16px; background: #f9fcff;
+      border: 1px solid #e2edf5;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 1rem; transition: box-shadow 0.2s;
+    }
+    .booking-item:hover { box-shadow: 0 8px 20px -10px rgba(10, 42, 59, 0.2); }
+    .booking-item .info { flex: 1; min-width: 0; }
+    .booking-item .ref {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.05em; color: #2d9cdb; margin-bottom: 0.2rem;
+    }
+    .booking-item .desc {
+      font-size: 0.92rem; font-weight: 600; color: #0a2a3b;
+      margin-bottom: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .booking-item .meta { font-size: 0.78rem; color: #839eae; }
+    .booking-item .right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;
+    }
+    .booking-item .amount { font-size: 1rem; font-weight: 700; color: #0a2a3b; }
+    .empty-state {
+      text-align: center; padding: 2.5rem 1rem; color: #839eae;
+      font-size: 0.92rem;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.6; }
+
+    /* ---- PROFILE ---- */
+    .profile-row {
+      display: flex; justify-content: space-between; padding: 0.75rem 0;
+      border-bottom: 1px solid #eef4f9; font-size: 0.9rem;
+    }
+    .profile-row:last-child { border-bottom: none; }
+    .profile-row .k { color: #5e7a8c; font-weight: 500; }
+    .profile-row .v { color: #0a2a3b; font-weight: 600; }
+
+    /* ---- TOASTS ---- */
+    .toast-container {
+      position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999;
+      display: flex; flex-direction: column; gap: 0.75rem;
+      max-width: 380px; pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 0.85rem;
+      padding: 1rem 1.1rem; background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(14px); border-radius: 18px;
+      box-shadow: 0 20px 45px -12px rgba(10, 28, 43, 0.35),
+                  0 0 0 1px rgba(10, 28, 43, 0.06);
+      border-left: 4px solid #2d9cdb; pointer-events: auto;
+      animation: toastIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+      position: relative; overflow: hidden;
+    }
+    .toast.removing { animation: toastOut 0.35s ease forwards; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(120%) scale(0.95); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(120%) scale(0.95); }
+    }
+    .toast-icon {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: #ffffff;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+    }
+    .toast-body { flex: 1; min-width: 0; }
+    .toast-title { font-size: 0.9rem; font-weight: 700; color: #0a2a3b; margin-bottom: 0.15rem; }
+    .toast-message { font-size: 0.83rem; color: #5e7a8c; line-height: 1.4; word-wrap: break-word; }
+    .toast-close {
+      background: none; border: none; color: #9eb4c4; font-size: 1.1rem;
+      cursor: pointer; padding: 0 0.2rem; line-height: 1;
+    }
+    .toast-close:hover { color: #2c4a5e; }
+    .toast-progress {
+      position: absolute; bottom: 0; left: 0; height: 3px;
+      background: #2d9cdb; width: 100%;
+      transform-origin: left; animation: toastProgress linear forwards;
+    }
+    @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    .toast.success { border-left-color: #16a34a; }
+    .toast.success .toast-icon { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+    .toast.success .toast-progress { background: #22c55e; }
+    .toast.error { border-left-color: #dc2626; }
+    .toast.error .toast-icon { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .toast.error .toast-progress { background: #ef4444; }
+    .toast.warning { border-left-color: #f59e0b; }
+    .toast.warning .toast-icon { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+    .toast.warning .toast-progress { background: #f59e0b; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 640px) {
+      .topbar { padding: 0.85rem 1rem; }
+      .brand { font-size: 1rem; }
+      .user-chip span { display: none; }
+      .page-wrap { padding: 5rem 1rem 2rem; }
+      .dash-card { padding: 1.5rem 1.15rem; border-radius: 22px; }
+      .tabs { font-size: 0.8rem; }
+      .tab { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
+      .toast-container { top: 0.75rem; right: 0.75rem; left: 0.75rem; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-bg">
+    <img src="{{ url_for('static', filename='DOMINION.png') }}" alt="Dominion Transport">
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">Dominion <span class="accent">Transport</span></div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="avatar">{{ (user['firstname'][0] ~ user['lastname'][0])|upper }}</div>
+        <span>{{ user['firstname'] }} {{ user['lastname'] }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="page-wrap">
+    <div class="dash-card">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="new">📝 New Booking</button>
+        <button class="tab" data-tab="list">📋 My Bookings</button>
+        <button class="tab" data-tab="profile">👤 Profile</button>
+      </div>
+
+      <!-- ============================== -->
+      <!-- TAB 1 — NEW BOOKING           -->
+      <!-- ============================== -->
+      <div class="tab-panel active" id="tab-new">
+        <div class="card-title">Book a Service</div>
+        <div class="card-sub">Fill in your trip details, then pay and upload your receipt.</div>
+
+        <form id="bookingForm" onsubmit="submitBooking(event)">
+
+          <!-- STEP 1: VEHICLE -->
+          <div class="input-group">
+            <label for="vehicle">1. Vehicle Type</label>
+            <select id="vehicle" name="vehicle" required onchange="updatePrice()">
+              <option value="" disabled selected>Select vehicle type</option>
+              <option value="bike"        data-price="5000">🏍️ Bike / Motorcycle — ₦5,000</option>
+              <option value="car"         data-price="10000">🚗 Car (Sedan) — ₦10,000</option>
+              <option value="suv"         data-price="15000">🚙 SUV — ₦15,000</option>
+              <option value="van"         data-price="18000">🚐 Van — ₦18,000</option>
+              <option value="truck-small" data-price="25000">🚚 Small Truck — ₦25,000</option>
+              <option value="truck-large" data-price="40000">🚛 Large Truck — ₦40,000</option>
+              <option value="trailer"     data-price="60000">🚛 Trailer / Container — ₦60,000</option>
+            </select>
+          </div>
+
+          <!-- STEP 2: TASK -->
+          <div class="input-group">
+            <label for="task">2. Task Type</label>
+            <select id="task" name="task" required onchange="toggleOtherTask()">
+              <option value="" disabled selected>Select type of task</option>
+              <option value="ride">🚕 Booking a Ride</option>
+              <option value="waybill">📦 Waybilling</option>
+              <option value="transfer">🔄 Transferring of Goods</option>
+              <option value="other">✏️ Others (type your own)</option>
+            </select>
+          </div>
+
+          <div class="other-task" id="otherTaskBox">
+            <div class="input-group" style="margin-bottom: 0;">
+              <label for="otherTask">Describe what you want to do</label>
+              <textarea id="otherTask" name="otherTask"
+                placeholder="e.g. Moving furniture from Abuja to Lagos…"></textarea>
+            </div>
+          </div>
+
+          <!-- STEP 3: STATE -->
+          <div class="input-group">
+            <label for="state">3. Destination State</label>
+            <select id="state" name="state" required onchange="updatePrice()">
+              <option value="" disabled selected>Select your state</option>

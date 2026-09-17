@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominion Transport Solutions · Create Account</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh; width: 100vw; overflow: hidden; background: #f8faff;
+    }
+    .split-layout { display: flex; height: 100vh; width: 100vw; background: #f8faff; }
+    .image-half {
+      flex: 1 1 50%; position: relative; overflow: hidden;
+      background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
+      display: flex; align-items: center; justify-content: center; padding: 3rem;
+    }
+    .image-half img {
+      max-width: 85%; max-height: 85%; object-fit: contain;
+      display: block; border-radius: 20px;
+      box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.55);
+      transition: transform 0.4s ease;
+    }
+    .image-half img:hover { transform: scale(1.02); }
+    .image-brand {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      z-index: 3; color: rgba(255, 255, 255, 0.9); font-weight: 500;
+      font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase;
+      background: rgba(0, 20, 35, 0.4); backdrop-filter: blur(6px);
+      padding: 0.55rem 1.4rem; border-radius: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none; white-space: nowrap;
+    }
+    .form-half {
+      flex: 1 1 50%; display: flex; align-items: center; justify-content: center;
+      background: #ffffff; padding: 2rem; box-shadow: -6px 0 28px rgba(0, 0, 0, 0.04);
+      overflow-y: auto;
+    }
+    .login-card {
+      width: 100%; max-width: 460px; padding: 2.5rem 2rem; background: #ffffff;
+      border-radius: 32px; box-shadow: 0 24px 48px -12px rgba(10, 28, 43, 0.18);
+    }
+    .brand-header { margin-bottom: 0.5rem; display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .brand-name { font-size: 1.6rem; font-weight: 700; color: #0a2a3b; line-height: 1.2; }
+    .brand-accent { font-size: 1.6rem; font-weight: 300; color: #2d9cdb; }
+    .login-card h2 { font-size: 2rem; font-weight: 600; color: #0b2a3b; margin: 0.25rem 0; }
+    .login-card .subhead {
+      font-size: 0.95rem; color: #5e7a8c; margin-bottom: 2rem;
+      border-left: 3px solid #2d9cdb; padding-left: 0.75rem;
+    }
+    .input-group { margin-bottom: 1.25rem; display: flex; flex-direction: column; }
+    .input-group label {
+      font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #2c4a5e; margin-bottom: 0.45rem;
+    }
+    .input-group input {
+      padding: 0.85rem 1rem; font-size: 0.95rem;
+      border: 1.5px solid #dae2e9; border-radius: 16px;
+      background: #f9fcff; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      font-family: inherit; color: #0b2a3b;
+    }
+    .input-group input:focus {
+      border-color: #2d9cdb; background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
+    }
+    .input-group input::placeholder { color: #9eb4c4; font-weight: 300; }
+    .file-upload {
+      position: relative; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 1.75rem 1rem; border: 2px dashed #b8d4e8;
+      border-radius: 16px; background: #f4faff; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; text-align: center;
+    }
+    .file-upload:hover { border-color: #2d9cdb; background: #eaf6ff; }
+    .file-upload input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .file-upload .upload-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .file-upload .upload-text { font-size: 0.9rem; font-weight: 600; color: #2c4a5e; margin-bottom: 0.25rem; }
+    .file-upload .upload-hint { font-size: 0.75rem; color: #839eae; }
+    .file-upload .file-name { margin-top: 0.75rem; font-size: 0.8rem; font-weight: 500; color: #2d9cdb; word-break: break-all; }
+    .name-row { display: flex; gap: 1rem; }
+    .name-row .input-group { flex: 1; margin-bottom: 0; }
+    .login-btn {
+      width: 100%; padding: 1rem; background: #0a2a3b; color: white;
+      font-weight: 600; font-size: 1rem; border: none; border-radius: 40px;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.03em; box-shadow: 0 10px 20px -8px rgba(10, 42, 59, 0.35);
+      margin-top: 2rem; margin-bottom: 1.5rem; display: block; text-align: center;
+    }
+    .login-btn:hover { background: #1d4b63; }
+    .login-btn:active { transform: scale(0.98); }
+    .form-footer { text-align: center; font-size: 0.8rem; color: #839eae; }
+    .form-footer a { color: #2d9cdb; text-decoration: none; font-weight: 500; }
+    .form-footer a:hover { text-decoration: underline; }
+
+    .flash {
+      padding: 0.75rem 1rem; border-radius: 14px; font-size: 0.85rem;
+      margin-bottom: 1rem; font-weight: 500;
+    }
+    .flash.error   { background: #fdecec; color: #b42318; border-left: 4px solid #dc2626; }
+    .flash.success { background: #e7f8ef; color: #067647; border-left: 4px solid #16a34a; }
+    .flash.warning { background: #fff6e5; color: #b54708; border-left: 4px solid #f59e0b; }
+    .flash.info    { background: #e8f4fd; color: #1c5d8a; border-left: 4px solid #2d9cdb; }
+
+    @media (max-width: 700px) {
+      body { height: auto; min-height: 100vh; overflow-y: auto; overflow-x: hidden; }
+      .split-layout { flex-direction: column; height: auto; min-height: 100vh; }
+      .image-half { flex: 0 0 auto; min-height: 200px; padding: 2rem; border-radius: 0 0 28px 28px; }
+      .image-half img { max-width: 55%; max-height: 160px; }
+      .form-half { flex: 1 1 auto; padding: 2rem 1.25rem 3rem; align-items: flex-start; box-shadow: none; }
+      .login-card { padding: 2rem 1.5rem; border-radius: 28px; margin-top: 1rem; }
+      .name-row { flex-direction: column; gap: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="split-layout">
+    <div class="image-half">
+      <img src="{{ url_for('static', filename='ChatGPT.png') }}" alt="Dominion Transport">
+      <div class="image-brand">Dominion Transport</div>
+    </div>
+
+    <div class="form-half">
+      <div class="login-card">
+        <div class="brand-header">
+          <span class="brand-name">Dominion</span>
+          <span class="brand-accent">Transport</span>
+        </div>
+        <h2>Create account</h2>
+        <div class="subhead">Join Dominion Transport Solutions in a few steps</div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('create') }}" method="POST" enctype="multipart/form-data">
+          <div class="name-row">
+            <div class="input-group">
+              <label for="firstname">First name</label>
+              <input type="text" id="firstname" name="firstname" placeholder="Jane" autocomplete="given-name" required>
+            </div>
+            <div class="input-group">
+              <label for="lastname">Last name</label>
+              <input type="text" id="lastname" name="lastname" placeholder="Doe" autocomplete="family-name" required>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-top: 1.25rem;">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="janedoe"
+              autocomplete="username"
+              pattern="[A-Za-z0-9_.]{3,20}"
+              title="3–20 characters: letters, numbers, underscore or dot"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="email">Email address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="jane@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="At least 6 characters"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="dob">Date of birth</label>
+            <input type="date" id="dob" name="dob" required>
+          </div>
+
+          <div class="input-group">
+            <label for="nin">NIN (National Identification Number)</label>
+            <input
+              type="text"
+              id="nin"
+              name="nin"
+              placeholder="e.g. 12345678901"
+              inputmode="numeric"
+              pattern="[0-9]{11}"
+              maxlength="11"
+              title="NIN must be exactly 11 digits"
+              required
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="nin-photo">NIN photo / slip</label>
+            <label class="file-upload" for="nin-photo">
+              <input
+                type="file"
+                id="nin-photo"
+                name="nin_photo"
+                accept="image/*,.pdf"
+                required
+                onchange="showFileName(event)"
+              >
+              <div class="upload-icon">📷</div>
+              <div class="upload-text">Tap to upload NIN photo</div>
+              <div class="upload-hint">JPG, PNG or PDF · max 5MB</div>
+              <div class="file-name" id="fileName"></div>
+            </label>
+          </div>
+
+          <button type="submit" class="login-btn">Create my account</button>
+
+          <div class="form-footer">
+            Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showFileName(event) {
+      const file = event.target.files[0];
+      const label = document.getElementById('fileName');
+      label.textContent = file ? '✓ ' + file.name : '';
+    }
+  </script>
+</body>
+</html>
