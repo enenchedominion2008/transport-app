@@ -12,12 +12,11 @@
       min-height: 100vh; width: 100%; overflow-x: hidden; background: #0a1c2b;
     }
 
-    /* ---- BACKGROUND ---- */
+    /* ---------- BACKGROUND ---------- */
     .page-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
     .page-bg img {
       position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; object-fit: cover;
-      object-position: center; display: block;
+      width: 100%; height: 100%; object-fit: cover; display: block;
     }
     .page-bg::after {
       content: ""; position: absolute; inset: 0;
@@ -28,7 +27,7 @@
       z-index: 1;
     }
 
-    /* ---- TOP BAR ---- */
+    /* ---------- TOP BAR ---------- */
     .topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 10;
       display: flex; align-items: center; justify-content: space-between;
@@ -59,7 +58,7 @@
     }
     .logout-btn:hover { background: rgba(255, 255, 255, 0.22); }
 
-    /* ---- WRAPPER ---- */
+    /* ---------- WRAPPER ---------- */
     .page-wrap {
       position: relative; z-index: 2;
       min-height: 100vh; width: 100%;
@@ -81,7 +80,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ---- TABS ---- */
+    /* ---------- TABS ---------- */
     .tabs {
       display: flex; gap: 0.4rem; margin-bottom: 1.75rem;
       background: #f1f6fa; padding: 0.35rem; border-radius: 40px;
@@ -111,7 +110,7 @@
       border-left: 3px solid #2d9cdb; padding-left: 0.75rem;
     }
 
-    /* ---- FORM ---- */
+    /* ---------- FORM ---------- */
     .input-group { margin-bottom: 1.1rem; display: flex; flex-direction: column; }
     .input-group label {
       font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
@@ -142,7 +141,6 @@
     }
     .input-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
-    /* collapsible "other task" */
     .other-task {
       max-height: 0; overflow: hidden; opacity: 0;
       transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
@@ -150,7 +148,7 @@
     }
     .other-task.show { max-height: 200px; opacity: 1; margin-bottom: 1.1rem; }
 
-    /* ---- PRICE BREAKDOWN ---- */
+    /* ---------- PRICE BOX ---------- */
     .price-box {
       padding: 0; margin: 0;
       background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
@@ -179,7 +177,7 @@
     }
     .price-total .value { font-size: 1.25rem; font-weight: 700; color: #0a2a3b; }
 
-    /* ---- STEP BUTTON ---- */
+    /* ---------- BUTTONS ---------- */
     .primary-btn {
       width: 100%; padding: 0.95rem;
       background: #0a2a3b; color: #ffffff;
@@ -193,9 +191,7 @@
     }
     .primary-btn:hover { background: #1d4b63; }
     .primary-btn:active { transform: scale(0.98); }
-    .primary-btn:disabled {
-      opacity: 0.5; cursor: not-allowed; transform: none;
-    }
+    .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .primary-btn.accent {
       background: #2d9cdb;
       box-shadow: 0 10px 20px -8px rgba(45, 156, 219, 0.5);
@@ -211,15 +207,15 @@
     }
     .ghost-btn:hover { background: #f3f7fa; border-color: #b8d4e8; color: #2c4a5e; }
 
-    /* ---- BANK DETAILS BLOCK ---- */
-    .bank-block {
+    /* ---------- PAYMENT / BANK PANEL ---------- */
+    .pay-panel {
       max-height: 0; overflow: hidden; opacity: 0;
       transition: max-height 0.5s ease, opacity 0.4s ease, margin 0.3s ease;
       margin: 0;
     }
-    .bank-block.show {
-      max-height: 1000px; opacity: 1;
-      margin: 0.75rem 0 1.1rem;
+    .pay-panel.show {
+      max-height: 1400px; opacity: 1;
+      margin: 0.75rem 0 1rem;
     }
     .bank-info {
       background: #0a2a3b; color: #ffffff;
@@ -233,32 +229,51 @@
     }
     .bank-info .line {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.9rem; padding: 0.35rem 0;
+      font-size: 0.9rem; padding: 0.4rem 0;
       border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
     }
     .bank-info .line:last-child { border-bottom: none; }
     .bank-info .line span:first-child { color: rgba(255, 255, 255, 0.65); }
     .bank-info .line span:last-child { font-weight: 600; }
-    .bank-info .amount {
-      font-size: 1.35rem; font-weight: 700; color: #7dc9f0;
-    }
+    .bank-info .amount { font-size: 1.35rem; font-weight: 700; color: #7dc9f0; }
     .copy-hint {
-      font-size: 0.72rem; color: rgba(255, 255, 255, 0.5);
+      font-size: 0.72rem; color: rgba(255, 255, 255, 0.55);
       margin-top: 0.6rem; text-align: center;
     }
 
-    /* ---- STATUS BADGES ---- */
+    /* ---------- FILE UPLOAD ---------- */
+    .file-upload {
+      position: relative; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 1.5rem 1rem; border: 2px dashed #b8d4e8;
+      border-radius: 14px; background: #f4faff; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; text-align: center;
+    }
+    .file-upload:hover { border-color: #2d9cdb; background: #eaf6ff; }
+    .file-upload input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .file-upload .upload-icon { font-size: 1.5rem; margin-bottom: 0.35rem; }
+    .file-upload .upload-text { font-size: 0.85rem; font-weight: 600; color: #2c4a5e; }
+    .file-upload .upload-hint { font-size: 0.72rem; color: #839eae; margin-top: 0.15rem; }
+    .file-upload .file-name {
+      margin-top: 0.6rem; font-size: 0.78rem; font-weight: 600;
+      color: #2d9cdb; word-break: break-all;
+    }
+
+    /* ---------- STATUS BADGES ---------- */
     .badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
-      padding: 0.3rem 0.75rem; border-radius: 40px;
-      font-size: 0.72rem; font-weight: 700;
+      padding: 0.28rem 0.7rem; border-radius: 40px;
+      font-size: 0.7rem; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase;
     }
     .badge.pending  { background: #fff6e5; color: #b54708; }
     .badge.approved { background: #e7f8ef; color: #067647; }
     .badge.rejected { background: #fdecec; color: #b42318; }
 
-    /* ---- BOOKINGS LIST ---- */
+    /* ---------- BOOKINGS LIST ---------- */
     .booking-item {
       padding: 1rem 1.1rem; margin-bottom: 0.75rem;
       border-radius: 16px; background: #f9fcff;
@@ -269,25 +284,28 @@
     .booking-item:hover { box-shadow: 0 8px 20px -10px rgba(10, 42, 59, 0.2); }
     .booking-item .info { flex: 1; min-width: 0; }
     .booking-item .ref {
-      font-size: 0.75rem; font-weight: 700;
+      font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.05em; color: #2d9cdb; margin-bottom: 0.2rem;
     }
     .booking-item .desc {
       font-size: 0.92rem; font-weight: 600; color: #0a2a3b;
-      margin-bottom: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      margin-bottom: 0.2rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .booking-item .meta { font-size: 0.78rem; color: #839eae; }
     .booking-item .right {
       display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;
+      flex-shrink: 0;
     }
     .booking-item .amount { font-size: 1rem; font-weight: 700; color: #0a2a3b; }
+
     .empty-state {
       text-align: center; padding: 2.5rem 1rem; color: #839eae;
       font-size: 0.92rem;
     }
     .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.6; }
 
-    /* ---- PROFILE ---- */
+    /* ---------- PROFILE ---------- */
     .profile-row {
       display: flex; justify-content: space-between; padding: 0.75rem 0;
       border-bottom: 1px solid #eef4f9; font-size: 0.9rem;
@@ -296,7 +314,7 @@
     .profile-row .k { color: #5e7a8c; font-weight: 500; }
     .profile-row .v { color: #0a2a3b; font-weight: 600; }
 
-    /* ---- TOASTS ---- */
+    /* ---------- TOASTS ---------- */
     .toast-container {
       position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999;
       display: flex; flex-direction: column; gap: 0.75rem;
@@ -350,14 +368,13 @@
     .toast.warning .toast-icon { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
     .toast.warning .toast-progress { background: #f59e0b; }
 
-    /* ---- RESPONSIVE ---- */
+    /* ---------- RESPONSIVE ---------- */
     @media (max-width: 640px) {
       .topbar { padding: 0.85rem 1rem; }
       .brand { font-size: 1rem; }
       .user-chip span { display: none; }
       .page-wrap { padding: 5rem 1rem 2rem; }
       .dash-card { padding: 1.5rem 1.15rem; border-radius: 22px; }
-      .tabs { font-size: 0.8rem; }
       .tab { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
       .toast-container { top: 0.75rem; right: 0.75rem; left: 0.75rem; max-width: none; }
     }
@@ -369,12 +386,14 @@
     <img src="{{ url_for('static', filename='DOMINION.png') }}" alt="Dominion Transport">
   </div>
 
-  <!-- TOP BAR -->
+  <!-- ---------- TOP BAR ---------- -->
   <div class="topbar">
     <div class="brand">Dominion <span class="accent">Transport</span></div>
     <div class="topbar-right">
       <div class="user-chip">
-        <div class="avatar">{{ (user['firstname'][0] ~ user['lastname'][0])|upper }}</div>
+        <div class="avatar">
+          {{ (user['firstname'][0] ~ user['lastname'][0])|upper }}
+        </div>
         <span>{{ user['firstname'] }} {{ user['lastname'] }}</span>
       </div>
       <a href="{{ url_for('logout') }}" class="logout-btn">Log out</a>
@@ -386,23 +405,23 @@
   <div class="page-wrap">
     <div class="dash-card">
 
-      <!-- TABS -->
+      <!-- ---------- TABS ---------- -->
       <div class="tabs">
         <button class="tab active" data-tab="new">📝 New Booking</button>
         <button class="tab" data-tab="list">📋 My Bookings</button>
         <button class="tab" data-tab="profile">👤 Profile</button>
       </div>
 
-      <!-- ============================== -->
-      <!-- TAB 1 — NEW BOOKING           -->
-      <!-- ============================== -->
+      <!-- ============================================================ -->
+      <!-- TAB 1 — NEW BOOKING                                           -->
+      <!-- ============================================================ -->
       <div class="tab-panel active" id="tab-new">
         <div class="card-title">Book a Service</div>
         <div class="card-sub">Fill in your trip details, then pay and upload your receipt.</div>
 
         <form id="bookingForm" onsubmit="submitBooking(event)">
 
-          <!-- STEP 1: VEHICLE -->
+          <!-- STEP 1 -->
           <div class="input-group">
             <label for="vehicle">1. Vehicle Type</label>
             <select id="vehicle" name="vehicle" required onchange="updatePrice()">
@@ -417,7 +436,7 @@
             </select>
           </div>
 
-          <!-- STEP 2: TASK -->
+          <!-- STEP 2 -->
           <div class="input-group">
             <label for="task">2. Task Type</label>
             <select id="task" name="task" required onchange="toggleOtherTask()">
@@ -437,8 +456,476 @@
             </div>
           </div>
 
-          <!-- STEP 3: STATE -->
+          <!-- STEP 3 -->
           <div class="input-group">
             <label for="state">3. Destination State</label>
             <select id="state" name="state" required onchange="updatePrice()">
               <option value="" disabled selected>Select your state</option>
+              <option value="abia"        data-price="15000">Abia — ₦15,000</option>
+              <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
+              <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
+              <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
+              <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
+              <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
+              <option value="benue"       data-price="24000">Benue — ₦24,000</option>
+              <option value="borno"       data-price="35000">Borno — ₦35,000</option>
+              <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
+              <option value="delta"       data-price="17000">Delta — ₦17,000</option>
+              <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
+              <option value="edo"         data-price="15000">Edo — ₦15,000</option>
+              <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
+              <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
+              <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
+              <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
+              <option value="imo"         data-price="17000">Imo — ₦17,000</option>
+              <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
+              <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
+              <option value="kano"        data-price="26000">Kano — ₦26,000</option>
+              <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
+              <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
+              <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
+              <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
+              <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
+              <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
+              <option value="niger"       data-price="22000">Niger — ₦22,000</option>
+              <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
+              <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
+              <option value="osun"        data-price="14000">Osun — ₦14,000</option>
+              <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
+              <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
+              <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
+              <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
+              <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
+              <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
+              <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
+            </select>
+          </div>
+
+          <!-- PRICE BREAKDOWN -->
+          <div class="price-box" id="priceBox">
+            <div class="price-row" id="rowVehicle">
+              <span class="label">Vehicle</span>
+              <span class="value" id="vehiclePrice">—</span>
+            </div>
+            <div class="price-row" id="rowState">
+              <span class="label">State</span>
+              <span class="value" id="statePrice">—</span>
+            </div>
+            <div class="price-divider"></div>
+            <div class="price-total">
+              <span class="label">Total</span>
+              <span class="value" id="totalPrice">₦0</span>
+            </div>
+          </div>
+
+          <!-- STEP 4 — Proceed to payment -->
+          <button type="button" class="primary-btn accent" id="proceedBtn"
+                  onclick="showPaymentPanel()" disabled>
+            💳 Proceed to Payment
+          </button>
+
+          <!-- ==================================================== -->
+          <!-- PAYMENT PANEL                                        -->
+          <!-- ==================================================== -->
+          <div class="pay-panel" id="payPanel">
+
+            <div class="bank-info">
+              <h4>Pay to Dominion Transport Solutions</h4>
+              <div class="line">
+                <span>Bank</span>
+                <span>{{ company_bank.bank_name }}</span>
+              </div>
+              <div class="line">
+                <span>Account Number</span>
+                <span>{{ company_bank.account_number }}</span>
+              </div>
+              <div class="line">
+                <span>Account Name</span>
+                <span>{{ company_bank.account_name }}</span>
+              </div>
+              <div class="line">
+                <span>Amount</span>
+                <span class="amount" id="payAmount">₦0</span>
+              </div>
+              <div class="copy-hint">
+                Send the exact amount above using your bank app or USSD.
+                Then fill the form below with your transaction details.
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="paymentBank">Your Bank (bank you paid from)</label>
+              <select id="paymentBank" name="paymentBank" required>
+                <option value="" disabled selected>Select your bank</option>
+                <option value="access">Access Bank</option>
+                <option value="citibank">Citibank Nigeria</option>
+                <option value="ecobank">Ecobank Nigeria</option>
+                <option value="fidelity">Fidelity Bank</option>
+                <option value="fcmb">First City Monument Bank (FCMB)</option>
+                <option value="firstbank">First Bank of Nigeria</option>
+                <option value="gtbank">Guaranty Trust Bank (GTB)</option>
+                <option value="heritage">Heritage Bank</option>
+                <option value="keystone">Keystone Bank</option>
+                <option value="kuda">Kuda Bank</option>
+                <option value="opay">OPay</option>
+                <option value="palmpay">PalmPay</option>
+                <option value="polaris">Polaris Bank</option>
+                <option value="providus">Providus Bank</option>
+                <option value="stanbic">Stanbic IBTC Bank</option>
+                <option value="standard">Standard Chartered</option>
+                <option value="sterling">Sterling Bank</option>
+                <option value="uba">United Bank for Africa (UBA)</option>
+                <option value="union">Union Bank</option>
+                <option value="unity">Unity Bank</option>
+                <option value="wema">Wema Bank</option>
+                <option value="zenith">Zenith Bank</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="paymentReference">Transaction Reference / Session ID</label>
+              <input type="text" id="paymentReference" name="paymentReference"
+                     placeholder="e.g. 12345678901234567890 or the ref from your bank SMS"
+                     required>
+            </div>
+
+            <div class="input-group">
+              <label for="paymentReceipt">Upload Payment Receipt / Screenshot</label>
+              <label class="file-upload" for="paymentReceipt">
+                <input type="file" id="paymentReceipt" name="paymentReceipt"
+                       accept="image/*,.pdf" required
+                       onchange="showReceiptName(event)">
+                <div class="upload-icon">🧾</div>
+                <div class="upload-text">Tap to upload your receipt</div>
+                <div class="upload-hint">JPG, PNG or PDF · max 5MB</div>
+                <div class="file-name" id="receiptName"></div>
+              </label>
+            </div>
+
+            <button type="submit" class="primary-btn" id="submitBtn">
+              ✅ I have paid — Submit for Verification
+            </button>
+
+            <button type="button" class="ghost-btn" onclick="hidePaymentPanel()">
+              ← Back to trip details
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2 — MY BOOKINGS                                           -->
+      <!-- ============================================================ -->
+      <div class="tab-panel" id="tab-list">
+        <div class="card-title">My Bookings</div>
+        <div class="card-sub">Track the status of every trip you've booked.</div>
+
+        <div id="bookingsContainer">
+          {% if bookings and bookings|length > 0 %}
+            {% for b in bookings %}
+              <div class="booking-item">
+                <div class="info">
+                  <div class="ref">{{ b['reference'] }}</div>
+                  <div class="desc">
+                    {{ b['vehicle']|capitalize }} ·
+                    {% if b['task'] == 'other' %}
+                      {{ b['other_task'] }}
+                    {% else %}
+                      {{ b['task']|capitalize }}
+                    {% endif %}
+                    → {{ b['state']|replace('-', ' ')|title }}
+                  </div>
+                  <div class="meta">{{ b['created_at'] }}</div>
+                </div>
+                <div class="right">
+                  <div class="amount">₦{{ '{:,}'.format(b['total_price']) }}</div>
+                  <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="icon">📭</div>
+              <div>You haven't made any bookings yet.</div>
+              <div style="margin-top:0.5rem; font-size:0.82rem;">
+                Switch to the <strong>New Booking</strong> tab to get started.
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3 — PROFILE                                               -->
+      <!-- ============================================================ -->
+      <div class="tab-panel" id="tab-profile">
+        <div class="card-title">My Profile</div>
+        <div class="card-sub">Your Dominion Transport account details.</div>
+
+        <div class="profile-row">
+          <span class="k">First name</span>
+          <span class="v">{{ user['firstname'] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">Last name</span>
+          <span class="v">{{ user['lastname'] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">Username</span>
+          <span class="v">@{{ user['username'] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">Email</span>
+          <span class="v">{{ user['email'] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">Date of birth</span>
+          <span class="v">{{ user['dob'] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">NIN</span>
+          <span class="v">{{ user['nin'][:3] }}****{{ user['nin'][-3:] }}</span>
+        </div>
+        <div class="profile-row">
+          <span class="k">Member since</span>
+          <span class="v">{{ user['created_at'][:10] }}</span>
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="primary-btn"
+           style="margin-top:1.5rem; text-decoration:none; display:flex;">
+          🚪 Log out
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================ */
+    /* TABS                                                          */
+    /* ============================================================ */
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const name = tab.dataset.tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
+      });
+    });
+
+    /* ============================================================ */
+    /* TOASTS                                                        */
+    /* ============================================================ */
+    function showToast(title, message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
+
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || 'i'}</div>
+        <div class="toast-body">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" aria-label="Close">×</button>
+        <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+      `;
+      container.appendChild(toast);
+
+      const autoRemove = setTimeout(() => removeToast(toast), duration);
+      toast.querySelector('.toast-close').addEventListener('click', () => {
+        clearTimeout(autoRemove);
+        removeToast(toast);
+      });
+    }
+    function removeToast(toast) {
+      if (toast.classList.contains('removing')) return;
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 350);
+    }
+
+    /* ============================================================ */
+    /* OTHER TASK                                                    */
+    /* ============================================================ */
+    function toggleOtherTask() {
+      const taskSelect = document.getElementById('task');
+      const otherBox   = document.getElementById('otherTaskBox');
+      const otherInput = document.getElementById('otherTask');
+
+      if (taskSelect.value === 'other') {
+        otherBox.classList.add('show');
+        otherInput.required = true;
+        setTimeout(() => otherInput.focus(), 300);
+      } else {
+        otherBox.classList.remove('show');
+        otherInput.required = false;
+        otherInput.value = '';
+      }
+    }
+
+    /* ============================================================ */
+    /* PRICE                                                         */
+    /* ============================================================ */
+    function updatePrice() {
+      const vehicleSelect = document.getElementById('vehicle');
+      const stateSelect   = document.getElementById('state');
+
+      const vehicleOpt = vehicleSelect.options[vehicleSelect.selectedIndex];
+      const stateOpt   = stateSelect.options[stateSelect.selectedIndex];
+
+      const vehiclePrice = vehicleOpt ? Number(vehicleOpt.getAttribute('data-price')) || 0 : 0;
+      const statePrice   = stateOpt   ? Number(stateOpt.getAttribute('data-price'))   || 0 : 0;
+      const total        = vehiclePrice + statePrice;
+
+      const priceBox   = document.getElementById('priceBox');
+      const rowVehicle = document.getElementById('rowVehicle');
+      const rowState   = document.getElementById('rowState');
+      const vehEl      = document.getElementById('vehiclePrice');
+      const stEl       = document.getElementById('statePrice');
+      const totEl      = document.getElementById('totalPrice');
+      const payEl      = document.getElementById('payAmount');
+      const proceedBtn = document.getElementById('proceedBtn');
+
+      vehEl.textContent = vehiclePrice ? '₦' + vehiclePrice.toLocaleString() : '—';
+      stEl.textContent  = statePrice   ? '₦' + statePrice.toLocaleString()   : '—';
+      totEl.textContent = '₦' + total.toLocaleString();
+      payEl.textContent = '₦' + total.toLocaleString();
+
+      if (vehiclePrice > 0 || statePrice > 0) {
+        priceBox.classList.add('show');
+      } else {
+        priceBox.classList.remove('show');
+      }
+
+      rowVehicle.classList.toggle('muted', !vehiclePrice);
+      rowState.classList.toggle('muted',   !statePrice);
+
+      // enable the Proceed button only when both are chosen
+      proceedBtn.disabled = !(vehiclePrice > 0 && statePrice > 0);
+    }
+
+    /* ============================================================ */
+    /* PAYMENT PANEL                                                 */
+    /* ============================================================ */
+    function showPaymentPanel() {
+      const panel = document.getElementById('payPanel');
+      panel.classList.add('show');
+      setTimeout(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    }
+    function hidePaymentPanel() {
+      document.getElementById('payPanel').classList.remove('show');
+    }
+
+    function showReceiptName(event) {
+      const file = event.target.files[0];
+      const label = document.getElementById('receiptName');
+      label.textContent = file ? '✓ ' + file.name : '';
+    }
+
+    /* ============================================================ */
+    /* SUBMIT BOOKING                                                */
+    /* ============================================================ */
+    function submitBooking(event) {
+      event.preventDefault();
+
+      const vehicle        = document.getElementById('vehicle').value;
+      const task           = document.getElementById('task').value;
+      const otherTask      = document.getElementById('otherTask').value.trim();
+      const state          = document.getElementById('state').value;
+      const paymentBank    = document.getElementById('paymentBank').value;
+      const paymentRef     = document.getElementById('paymentReference').value.trim();
+      const receiptInput   = document.getElementById('paymentReceipt');
+      const receiptFile    = receiptInput.files[0];
+      const total          = document.getElementById('totalPrice').textContent;
+
+      // validation
+      if (!vehicle || !task || !state) {
+        showToast('Missing details', 'Please fill in vehicle, task, and state.', 'error', 4200);
+        return;
+      }
+      if (task === 'other' && !otherTask) {
+        showToast('Describe your task', 'Please type what you want to do.', 'warning', 4200);
+        return;
+      }
+      if (!paymentBank) {
+        showToast('Select your bank', 'Please choose the bank you paid from.', 'error', 4200);
+        return;
+      }
+      if (!paymentRef) {
+        showToast('Missing reference', 'Please enter your transaction reference.', 'error', 4200);
+        return;
+      }
+      if (!receiptFile) {
+        showToast('Upload receipt', 'Please attach your payment receipt.', 'error', 4200);
+        return;
+      }
+      if (receiptFile.size > 5 * 1024 * 1024) {
+        showToast('File too large', 'Receipt must be 5MB or smaller.', 'error', 4200);
+        return;
+      }
+
+      // build multipart form data
+      const fd = new FormData();
+      fd.append('vehicle', vehicle);
+      fd.append('task', task);
+      fd.append('otherTask', otherTask);
+      fd.append('state', state);
+      fd.append('paymentBank', paymentBank);
+      fd.append('paymentReference', paymentRef);
+      fd.append('paymentReceipt', receiptFile);
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Submitting…';
+
+      fetch('/api/book', {
+        method: 'POST',
+        body: fd
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ I have paid — Submit for Verification';
+
+        if (data.ok) {
+          showToast(
+            'Booking submitted!',
+            `${data.message} Reference: ${data.reference}`,
+            'success',
+            6000
+          );
+          // reset the form after a moment and switch to My Bookings tab
+          setTimeout(() => {
+            document.getElementById('bookingForm').reset();
+            document.getElementById('priceBox').classList.remove('show');
+            document.getElementById('payPanel').classList.remove('show');
+            document.getElementById('proceedBtn').disabled = true;
+            document.getElementById('receiptName').textContent = '';
+            document.getElementById('vehiclePrice').textContent = '—';
+            document.getElementById('statePrice').textContent = '—';
+            document.getElementById('totalPrice').textContent = '₦0';
+            document.getElementById('payAmount').textContent = '₦0';
+
+            // switch to My Bookings tab and refresh
+            document.querySelector('.tab[data-tab="list"]').click();
+            setTimeout(() => window.location.reload(), 800);
+          }, 2500);
+        } else {
+          showToast('Booking failed', data.error || 'Something went wrong.', 'error', 4500);
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ I have paid — Submit for Verification';
+        showToast('Network error', 'Could not reach the server. Try again.', 'error', 4500);
+        console.error(err);
+      });
+    }
+  </script>
+</body>
+</html>
