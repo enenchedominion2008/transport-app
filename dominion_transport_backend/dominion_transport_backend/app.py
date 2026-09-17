@@ -28,6 +28,13 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
 
 # ------------------------------------------------------------------
+# ADMIN CREDENTIALS (change these!)
+# ------------------------------------------------------------------
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD_HASH = generate_password_hash("dominion2025")
+
+
+# ------------------------------------------------------------------
 # DATABASE HELPERS
 # ------------------------------------------------------------------
 def get_db():
@@ -78,11 +85,10 @@ def init_db():
             vehicle_price      INTEGER NOT NULL,
             state_price        INTEGER NOT NULL,
             total_price        INTEGER NOT NULL,
-            payment_bank       TEXT,     -- bank the user paid FROM
-            payment_reference  TEXT,     -- transaction ref from their bank
-            payment_receipt    TEXT,     -- uploaded receipt filename
+            payment_bank       TEXT,
+            payment_reference  TEXT,
+            payment_receipt    TEXT,
             status             TEXT NOT NULL DEFAULT 'pending',
-                                         -- pending | approved | rejected
             admin_note         TEXT,
             created_at         TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
@@ -107,6 +113,19 @@ def login_required(view):
 
 
 # ------------------------------------------------------------------
+# ADMIN REQUIRED DECORATOR
+# ------------------------------------------------------------------
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("is_admin"):
+            flash("Admin login required.", "warning")
+            return redirect(url_for("admin_login"))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+# ------------------------------------------------------------------
 # VALIDATION HELPERS
 # ------------------------------------------------------------------
 EMAIL_RE    = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -121,7 +140,6 @@ def allowed_file(filename):
 
 # ------------------------------------------------------------------
 # DOMINION COMPANY BANK DETAILS
-# (These are the details shown to the user so they know where to pay.)
 # ------------------------------------------------------------------
 COMPANY_BANK = {
     "bank_name":      "Access Bank",
@@ -171,7 +189,7 @@ def generate_reference():
 
 
 # ==================================================================
-# ROUTES
+# PUBLIC ROUTES
 # ==================================================================
 
 # ---------- HOME / LANDING ----------
@@ -416,6 +434,120 @@ def api_bookings():
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+# ==================================================================
+# ADMIN ROUTES
+# ==================================================================
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = (request.form.get("password") or "")
+
+        if username != ADMIN_USERNAME or not check_password_hash(ADMIN_PASSWORD_HASH, password):
+            flash("Invalid admin credentials.", "error")
+            return redirect(url_for("admin_login"))
+
+        session["is_admin"] = True
+        session["admin_username"] = username
+        flash("Welcome, admin.", "success")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin_login.html")
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("is_admin", None)
+    session.pop("admin_username", None)
+    flash("Admin signed out.", "info")
+    return redirect(url_for("admin_login"))
+
+
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    status_filter = request.args.get("status", "all")
+    db = get_db()
+
+    if status_filter == "all":
+        rows = db.execute(
+            """SELECT b.*, u.firstname, u.lastname, u.username, u.email
+               FROM bookings b LEFT JOIN users u ON u.id = b.user_id
+               ORDER BY b.id DESC"""
+        ).fetchall()
+    else:
+        rows = db.execute(
+            """SELECT b.*, u.firstname, u.lastname, u.username, u.email
+               FROM bookings b LEFT JOIN users u ON u.id = b.user_id
+               WHERE b.status = ?
+               ORDER BY b.id DESC""",
+            (status_filter,),
+        ).fetchall()
+
+    counts = {
+        "all":      db.execute("SELECT COUNT(*) FROM bookings").fetchone()[0],
+        "pending":  db.execute("SELECT COUNT(*) FROM bookings WHERE status='pending'").fetchone()[0],
+        "approved": db.execute("SELECT COUNT(*) FROM bookings WHERE status='approved'").fetchone()[0],
+        "rejected": db.execute("SELECT COUNT(*) FROM bookings WHERE status='rejected'").fetchone()[0],
+    }
+
+    return render_template(
+        "admin.html",
+        bookings=rows,
+        counts=counts,
+        status_filter=status_filter,
+        admin_username=session.get("admin_username"),
+    )
+
+
+@app.route("/admin/booking/<reference>")
+@admin_required
+def admin_booking_detail(reference):
+    db = get_db()
+    row = db.execute(
+        """SELECT b.*, u.firstname, u.lastname, u.username, u.email, u.nin, u.dob
+           FROM bookings b LEFT JOIN users u ON u.id = b.user_id
+           WHERE b.reference = ?""",
+        (reference,),
+    ).fetchone()
+
+    if row is None:
+        flash("Booking not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin_booking.html", b=row)
+
+
+@app.route("/admin/action", methods=["POST"])
+@admin_required
+def admin_action():
+    reference = (request.form.get("reference") or "").strip()
+    action    = (request.form.get("action") or "").strip()
+    note      = (request.form.get("note") or "").strip()
+
+    if action not in ("approve", "reject"):
+        flash("Invalid action.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    new_status = "approved" if action == "approve" else "rejected"
+
+    db = get_db()
+    row = db.execute("SELECT id FROM bookings WHERE reference=?", (reference,)).fetchone()
+    if row is None:
+        flash("Booking not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    db.execute(
+        "UPDATE bookings SET status=?, admin_note=? WHERE reference=?",
+        (new_status, note or None, reference),
+    )
+    db.commit()
+
+    flash(f"Booking {reference} marked as {new_status.upper()}.", "success")
+    return redirect(url_for("admin_booking_detail", reference=reference))
 
 
 # ------------------------------------------------------------------
