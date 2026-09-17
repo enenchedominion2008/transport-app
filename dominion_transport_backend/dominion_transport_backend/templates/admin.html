@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominion · Admin Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh; background: #f4f7fa; color: #0b2a3b;
+    }
+
+    /* ---------- TOPBAR ---------- */
+    .topbar {
+      background: #0a2a3b; color: #fff;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 20px -6px rgba(10, 42, 59, 0.4);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: baseline; gap: 0.35rem; font-size: 1.15rem; font-weight: 600; }
+    .brand .accent { font-weight: 300; color: #7dc9f0; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; }
+    .topbar-right .who { color: rgba(255, 255, 255, 0.7); }
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.12); color: #fff;
+      text-decoration: none; padding: 0.4rem 1rem;
+      border-radius: 40px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* ---------- CONTAINER ---------- */
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .page-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-head h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-head p { font-size: 0.9rem; color: #5e7a8c; margin-top: 0.15rem; }
+
+    /* ---------- FILTERS ---------- */
+    .filters {
+      display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .filter {
+      padding: 0.5rem 1rem; border-radius: 40px;
+      background: #fff; color: #5e7a8c; font-size: 0.83rem;
+      font-weight: 600; text-decoration: none;
+      border: 1.5px solid #e2edf5;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .filter:hover { border-color: #b8d4e8; color: #0a2a3b; }
+    .filter.active { background: #0a2a3b; color: #fff; border-color: #0a2a3b; }
+    .filter .count {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 0.05rem 0.55rem; border-radius: 40px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .filter.active .count { background: rgba(255, 255, 255, 0.2); }
+
+    /* ---------- TABLE ---------- */
+    .table-wrap {
+      background: #fff; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 12px 30px -14px rgba(10, 42, 59, 0.15);
+      border: 1px solid #e2edf5;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead { background: #f9fcff; }
+    thead th {
+      text-align: left; padding: 0.85rem 1.1rem;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #5e7a8c; border-bottom: 1px solid #e2edf5;
+    }
+    tbody tr { border-bottom: 1px solid #f0f5f9; transition: background 0.2s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fcff; }
+    tbody td { padding: 1rem 1.1rem; vertical-align: middle; }
+    tbody td .ref {
+      font-size: 0.75rem; font-weight: 700; color: #2d9cdb;
+      letter-spacing: 0.03em; margin-bottom: 0.15rem;
+    }
+    tbody td .user { font-weight: 600; color: #0a2a3b; }
+    tbody td .sub { font-size: 0.75rem; color: #839eae; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.28rem 0.7rem; border-radius: 40px;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge.pending  { background: #fff6e5; color: #b54708; }
+    .badge.approved { background: #e7f8ef; color: #067647; }
+    .badge.rejected { background: #fdecec; color: #b42318; }
+
+    .btn-view {
+      background: #2d9cdb; color: #fff;
+      padding: 0.45rem 1rem; border-radius: 40px;
+      font-size: 0.78rem; font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-view:hover { background: #1d7bb0; }
+
+    .empty {
+      text-align: center; padding: 3rem 1rem; color: #839eae;
+    }
+    .empty .icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
+
+    /* ---------- FLASH ---------- */
+    .flash {
+      padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.85rem;
+      margin-bottom: 1rem; font-weight: 500;
+    }
+    .flash.error   { background: #fdecec; color: #b42318; border-left: 4px solid #dc2626; }
+    .flash.success { background: #e7f8ef; color: #067647; border-left: 4px solid #16a34a; }
+    .flash.warning { background: #fff6e5; color: #b54708; border-left: 4px solid #f59e0b; }
+    .flash.info    { background: #e8f4fd; color: #1c5d8a; border-left: 4px solid #2d9cdb; }
+
+    @media (max-width: 700px) {
+      .container { padding: 1.25rem 1rem 3rem; }
+      thead { display: none; }
+      tbody, tr, td { display: block; width: 100%; }
+      tbody tr { padding: 0.75rem 0; }
+      tbody td { padding: 0.25rem 1.1rem; }
+      tbody td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 600; color: #5e7a8c; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        display: block; margin-bottom: 0.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">Dominion <span class="accent">Transport · Admin</span></div>
+    <div class="topbar-right">
+      <span class="who">Signed in as <strong>{{ admin_username }}</strong></span>
+      <a href="{{ url_for('admin_logout') }}" class="logout-btn">Log out</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <h1>Bookings</h1>
+        <p>Review user payments and approve or reject each booking.</p>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <a href="{{ url_for('admin_dashboard', status='all') }}"
+         class="filter {% if status_filter == 'all' %}active{% endif %}">
+        All <span class="count">{{ counts.all }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='pending') }}"
+         class="filter {% if status_filter == 'pending' %}active{% endif %}">
+        Pending <span class="count">{{ counts.pending }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='approved') }}"
+         class="filter {% if status_filter == 'approved' %}active{% endif %}">
+        Approved <span class="count">{{ counts.approved }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='rejected') }}"
+         class="filter {% if status_filter == 'rejected' %}active{% endif %}">
+        Rejected <span class="count">{{ counts.rejected }}</span>
+      </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      {% if bookings and bookings|length > 0 %}
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Customer</th>
+              <th>Trip</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bookings %}
+              <tr>
+                <td data-label="Reference">
+                  <div class="ref">{{ b['reference'] }}</div>
+                  <div class="sub">{{ b['created_at'][:16]|replace('T',' ') }}</div>
+                </td>
+                <td data-label="Customer">
+                  <div class="user">{{ b['firstname'] }} {{ b['lastname'] }}</div>
+                  <div class="sub">@{{ b['username'] }} · {{ b['email'] }}</div>
+                </td>
+                <td data-label="Trip">
+                  <div>{{ b['vehicle']|capitalize }} ·
+                    {% if b['task'] == 'other' %}
+                      {{ b['other_task'] }}
+                    {% else %}
+                      {{ b['task']|capitalize }}
+                    {% endif %}
+                  </div>
+                  <div class="sub">→ {{ b['state']|replace('-', ' ')|title }}</div>
+                </td>
+                <td data-label="Amount">
+                  <strong>₦{{ '{:,}'.format(b['total_price']) }}</strong>
+                </td>
+                <td data-label="Status">
+                  <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
+                </td>
+                <td>
+                  <a href="{{ url_for('admin_booking_detail', reference=b['reference']) }}"
+                     class="btn-view">View →</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">
+          <div class="icon">📭</div>
+          <div>No bookings to show.</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+</html>

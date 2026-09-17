@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking {{ b['reference'] }} · Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh; background: #f4f7fa; color: #0b2a3b;
+    }
+    .topbar {
+      background: #0a2a3b; color: #fff;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 20px -6px rgba(10, 42, 59, 0.4);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: baseline; gap: 0.35rem; font-size: 1.15rem; font-weight: 600; }
+    .brand .accent { font-weight: 300; color: #7dc9f0; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; }
+    .back-link {
+      color: #fff; text-decoration: none; font-size: 0.82rem;
+      background: rgba(255,255,255,0.12); padding: 0.4rem 1rem;
+      border-radius: 40px; border: 1px solid rgba(255,255,255,0.25);
+    }
+    .back-link:hover { background: rgba(255,255,255,0.22); }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .card {
+      background: #fff; border-radius: 22px; padding: 2rem;
+      box-shadow: 0 12px 30px -14px rgba(10, 42, 59, 0.15);
+      border: 1px solid #e2edf5;
+      margin-bottom: 1.5rem;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+    h2 {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: #5e7a8c; margin-bottom: 1rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid #eef4f9;
+    }
+    .ref-line {
+      font-size: 0.78rem; font-weight: 700; color: #2d9cdb;
+      letter-spacing: 0.05em; margin-bottom: 0.25rem;
+    }
+    .row {
+      display: flex; justify-content: space-between; padding: 0.65rem 0;
+      border-bottom: 1px solid #f0f5f9; font-size: 0.9rem;
+    }
+    .row:last-child { border-bottom: none; }
+    .row .k { color: #5e7a8c; font-weight: 500; }
+    .row .v { color: #0a2a3b; font-weight: 600; text-align: right; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.35rem 0.85rem; border-radius: 40px;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge.pending  { background: #fff6e5; color: #b54708; }
+    .badge.approved { background: #e7f8ef; color: #067647; }
+    .badge.rejected { background: #fdecec; color: #b42318; }
+
+    .receipt-img {
+      width: 100%; max-height: 480px; object-fit: contain;
+      border-radius: 14px; border: 1px solid #e2edf5;
+      background: #f9fcff; padding: 0.5rem;
+      cursor: zoom-in;
+    }
+    .receipt-link {
+      display: inline-block; margin-top: 0.75rem;
+      color: #2d9cdb; font-size: 0.85rem; font-weight: 600; text-decoration: none;
+    }
+    .receipt-link:hover { text-decoration: underline; }
+
+    .total-box {
+      background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
+      border: 1.5px solid #b8dffa; border-radius: 16px;
+      padding: 1.25rem 1.4rem; margin-top: 0.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .total-box .label {
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #0a2a3b;
+    }
+    .total-box .amt { font-size: 1.6rem; font-weight: 700; color: #0a2a3b; }
+
+    /* action form */
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .btn {
+      padding: 0.9rem 1.5rem; border-radius: 40px;
+      font-family: inherit; font-size: 0.92rem; font-weight: 600;
+      border: none; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.02em;
+    }
+    .btn-approve {
+      background: #16a34a; color: #fff;
+      box-shadow: 0 10px 20px -8px rgba(22, 163, 74, 0.5);
+      flex: 1;
+    }
+    .btn-approve:hover { background: #15803d; }
+    .btn-reject {
+      background: #dc2626; color: #fff;
+      box-shadow: 0 10px 20px -8px rgba(220, 38, 38, 0.5);
+      flex: 1;
+    }
+    .btn-reject:hover { background: #b91c1c; }
+
+    textarea {
+      width: 100%; min-height: 90px;
+      padding: 0.85rem 1rem;
+      border: 1.5px solid #dae2e9; border-radius: 14px;
+      background: #f9fcff; outline: none;
+      font-family: inherit; font-size: 0.9rem;
+      color: #0b2a3b; resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      border-color: #2d9cdb; background: #fff;
+      box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
+    }
+
+    .admin-note {
+      background: #fff6e5; border-left: 4px solid #f59e0b;
+      padding: 0.85rem 1.1rem; border-radius: 12px;
+      font-size: 0.88rem; color: #b54708;
+      margin-top: 0.75rem;
+    }
+
+    .flash {
+      padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.85rem;
+      margin-bottom: 1rem; font-weight: 500;
+    }
+    .flash.error   { background: #fdecec; color: #b42318; border-left: 4px solid #dc2626; }
+    .flash.success { background: #e7f8ef; color: #067647; border-left: 4px solid #16a34a; }
+    .flash.warning { background: #fff6e5; color: #b54708; border-left: 4px solid #f59e0b; }
+    .flash.info    { background: #e8f4fd; color: #1c5d8a; border-left: 4px solid #2d9cdb; }
+
+    @media (max-width: 600px) {
+      .container { padding: 1.25rem 1rem 3rem; }
+      .card { padding: 1.5rem 1.25rem; border-radius: 18px; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">Dominion <span class="accent">Transport · Admin</span></div>
+    <div class="topbar-right">
+      <a href="{{ url_for('admin_dashboard') }}" class="back-link">← All bookings</a>
+      <a href="{{ url_for('admin_logout') }}" class="back-link">Log out</a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- HEADER -->
+    <div class="card">
+      <div class="ref-line">{{ b['reference'] }}</div>
+      <h1>Booking Details</h1>
+      <div style="margin-top:0.75rem;">
+        <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
+      </div>
+      {% if b['admin_note'] %}
+        <div class="admin-note">
+          <strong>Admin note:</strong> {{ b['admin_note'] }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- CUSTOMER -->
+    <div class="card">
+      <h2>Customer</h2>
+      <div class="row"><span class="k">Full name</span><span class="v">{{ b['firstname'] }} {{ b['lastname'] }}</span></div>
+      <div class="row"><span class="k">Username</span><span class="v">@{{ b['username'] }}</span></div>
+      <div class="row"><span class="k">Email</span><span class="v">{{ b['email'] }}</span></div>
+      <div class="row"><span class="k">NIN</span><span class="v">{{ b['nin'] }}</span></div>
+      <div class="row"><span class="k">Date of birth</span><span class="v">{{ b['dob'] }}</span></div>
+    </div>
+
+    <!-- TRIP -->
+    <div class="card">
+      <h2>Trip</h2>
+      <div class="row"><span class="k">Vehicle</span><span class="v">{{ b['vehicle']|capitalize }}</span></div>
+      <div class="row">
+        <span class="k">Task</span>
+        <span class="v">
+          {% if b['task'] == 'other' %}
+            {{ b['other_task'] }}
+          {% else %}
+            {{ b['task']|capitalize }}
+          {% endif %}
+        </span>
+      </div>
+      <div class="row"><span class="k">Destination state</span><span class="v">{{ b['state']|replace('-',' ')|title }}</span></div>
+      <div class="row"><span class="k">Vehicle fee</span><span class="v">₦{{ '{:,}'.format(b['vehicle_price']) }}</span></div>
+      <div class="row"><span class="k">State fee</span><span class="v">₦{{ '{:,}'.format(b['state_price']) }}</span></div>
+
+      <div class="total-box">
+        <span class="label">Total Amount</span>
+        <span class="amt">₦{{ '{:,}'.format(b['total_price']) }}</span>
+      </div>
+    </div>
+
+    <!-- PAYMENT PROOF -->
+    <div class="card">
+      <h2>Payment Proof</h2>
+      <div class="row"><span class="k">Paid from bank</span><span class="v">{{ b['payment_bank']|capitalize if b['payment_bank'] else '—' }}</span></div>
+      <div class="row"><span class="k">Transaction reference</span><span class="v">{{ b['payment_reference'] or '—' }}</span></div>
+      <div class="row"><span class="k">Submitted</span><span class="v">{{ b['created_at'][:16]|replace('T',' ') }}</span></div>
+
+      {% if b['payment_receipt'] %}
+        <div style="margin-top:1rem;">
+          {% if b['payment_receipt'].lower().endswith('.pdf') %}
+            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
+               target="_blank" class="receipt-link">📄 Open PDF receipt</a>
+          {% else %}
+            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}" target="_blank">
+              <img class="receipt-img"
+                   src="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
+                   alt="Payment receipt">
+            </a>
+            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
+               target="_blank" class="receipt-link">🔍 Open full image</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <p style="color:#839eae; font-size:0.88rem; margin-top:0.75rem;">No receipt uploaded.</p>
+      {% endif %}
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card">
+      <h2>Decision</h2>
+      <form action="{{ url_for('admin_action') }}" method="POST">
+        <input type="hidden" name="reference" value="{{ b['reference'] }}">
+
+        <label for="note" style="font-size:0.72rem; font-weight:600; text-transform:uppercase;
+                                  letter-spacing:0.05em; color:#2c4a5e; display:block;
+                                  margin-bottom:0.4rem;">
+          Note (optional)
+        </label>
+        <textarea id="note" name="note"
+          placeholder="e.g. Payment confirmed via bank alert. Driver assigned."></textarea>
+
+        <div class="actions">
+          <button type="submit" name="action" value="approve" class="btn btn-approve">
+            ✅ Approve Booking
+          </button>
+          <button type="submit" name="action" value="reject" class="btn btn-reject">
+            ✕ Reject Booking
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+</body>
+</html>
