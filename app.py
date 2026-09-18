@@ -1,8 +1,11 @@
 import os
 import sqlite3
 import re
+import smtplib
 from datetime import datetime
 from functools import wraps
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask import (
@@ -32,6 +35,14 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 # ------------------------------------------------------------------
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD_HASH = generate_password_hash("dominion2025")
+
+
+# ------------------------------------------------------------------
+# EMAIL CONFIG — pulled from Render environment variables
+# ------------------------------------------------------------------
+GMAIL_USER         = os.environ.get("GMAIL_USER")
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+COMPANY_NAME       = "Dominion Transport Solutions"
 
 
 # ------------------------------------------------------------------
@@ -72,7 +83,7 @@ def init_db():
         )
     """)
 
-    # ---------- BOOKINGS (with payment proof + status) ----------
+    # ---------- BOOKINGS ----------
     cur.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,7 +111,7 @@ def init_db():
 
 
 # ------------------------------------------------------------------
-# LOGIN REQUIRED DECORATOR
+# DECORATORS
 # ------------------------------------------------------------------
 def login_required(view):
     @wraps(view)
@@ -112,9 +123,6 @@ def login_required(view):
     return wrapped
 
 
-# ------------------------------------------------------------------
-# ADMIN REQUIRED DECORATOR
-# ------------------------------------------------------------------
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -139,6 +147,182 @@ def allowed_file(filename):
 
 
 # ------------------------------------------------------------------
+# EMAIL HELPER
+# ------------------------------------------------------------------
+def send_email(to_email, subject, body_text, body_html=None):
+    """
+    Send an email via Gmail SMTP.
+    Returns True on success, False on failure.
+    """
+    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
+        print("[email] GMAIL_USER or GMAIL_APP_PASSWORD not set — skipping.")
+        return False
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["From"]    = f"{COMPANY_NAME} <{GMAIL_USER}>"
+        msg["To"]      = to_email
+        msg["Subject"] = subject
+
+        # plain text version
+        msg.attach(MIMEText(body_text, "plain"))
+        # optional HTML version
+        if body_html:
+            msg.attach(MIMEText(body_html, "html"))
+
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+            server.starttls()
+            server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+            server.sendmail(GMAIL_USER, to_email, msg.as_string())
+
+        print(f"[email] Sent to {to_email}: {subject}")
+        return True
+
+    except Exception as e:
+        print(f"[email] Failed to send to {to_email}: {e}")
+        return False
+
+
+def send_booking_status_email(to_email, firstname, reference, total,
+                              status, note=None):
+    """Notify a user that their booking was approved or rejected."""
+    if status == "approved":
+        subject = f"Booking {reference} — Approved ✓"
+        text = (
+            f"Hi {firstname},\n\n"
+            f"Great news! Your booking {reference} has been APPROVED.\n\n"
+            f"Amount received: ₦{total:,}\n"
+            f"Reference: {reference}\n\n"
+            f"A driver will contact you shortly with pickup details.\n\n"
+            f"Thank you for choosing {COMPANY_NAME}.\n"
+        )
+        html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
+                    background:#f4f7fa;padding:2rem;border-radius:14px;">
+          <div style="background:#0a2a3b;color:#fff;padding:1.5rem;
+                      border-radius:10px;text-align:center;">
+            <h1 style="margin:0;font-size:1.4rem;">{COMPANY_NAME}</h1>
+            <p style="margin:0.25rem 0 0;opacity:0.8;font-size:0.9rem;">
+              Booking Approved
+            </p>
+          </div>
+          <div style="background:#fff;padding:1.75rem;border-radius:10px;
+                      margin-top:1rem;">
+            <p>Hi <strong>{firstname}</strong>,</p>
+            <p style="color:#067647;font-size:1.05rem;">
+              <strong>✓ Your booking has been APPROVED.</strong>
+            </p>
+            <table style="width:100%;margin:1rem 0;font-size:0.92rem;">
+              <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
+                  <td style="text-align:right;font-weight:600;">{reference}</td></tr>
+              <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
+                  <td style="text-align:right;font-weight:600;">₦{total:,}</td></tr>
+            </table>
+            <p>A driver will contact you shortly with pickup details.</p>
+            <p style="color:#839eae;font-size:0.85rem;margin-top:1.5rem;">
+              Thank you for choosing {COMPANY_NAME}.
+            </p>
+          </div>
+        </div>
+        """
+    else:
+        subject = f"Booking {reference} — Rejected"
+        reason  = note or "No reason provided."
+        text = (
+            f"Hi {firstname},\n\n"
+            f"We're sorry to let you know that your booking {reference} "
+            f"was NOT approved.\n\n"
+            f"Reason: {reason}\n\n"
+            f"If you think this is a mistake, please reply to this email "
+            f"or submit a new booking with the correct details.\n\n"
+            f"— {COMPANY_NAME}\n"
+        )
+        html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
+                    background:#f4f7fa;padding:2rem;border-radius:14px;">
+          <div style="background:#0a2a3b;color:#fff;padding:1.5rem;
+                      border-radius:10px;text-align:center;">
+            <h1 style="margin:0;font-size:1.4rem;">{COMPANY_NAME}</h1>
+            <p style="margin:0.25rem 0 0;opacity:0.8;font-size:0.9rem;">
+              Booking Update
+            </p>
+          </div>
+          <div style="background:#fff;padding:1.75rem;border-radius:10px;
+                      margin-top:1rem;">
+            <p>Hi <strong>{firstname}</strong>,</p>
+            <p style="color:#b42318;font-size:1.05rem;">
+              <strong>Your booking was not approved.</strong>
+            </p>
+            <table style="width:100%;margin:1rem 0;font-size:0.92rem;">
+              <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
+                  <td style="text-align:right;font-weight:600;">{reference}</td></tr>
+              <tr><td style="padding:6px 0;color:#5e7a8c;">Reason</td>
+                  <td style="text-align:right;font-weight:600;">{reason}</td></tr>
+            </table>
+            <p>If you think this is a mistake, reply to this email or
+               submit a new booking with the correct details.</p>
+          </div>
+        </div>
+        """
+
+    return send_email(to_email, subject, text, html)
+
+
+def send_admin_new_booking_email(reference, user_name, user_email,
+                                 vehicle, task, state, total):
+    """Notify the admin when a new booking is submitted."""
+    # Sends to the same Gmail address that's sending (you)
+    if not GMAIL_USER:
+        return False
+
+    subject = f"🔔 New Booking {reference} — ₦{total:,}"
+    text = (
+        f"New booking received!\n\n"
+        f"Reference: {reference}\n"
+        f"Customer:  {user_name} ({user_email})\n"
+        f"Vehicle:   {vehicle}\n"
+        f"Task:      {task}\n"
+        f"State:     {state}\n"
+        f"Amount:    ₦{total:,}\n\n"
+        f"Log in to the admin panel to approve or reject:\n"
+        f"/admin/login\n"
+    )
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
+                background:#f4f7fa;padding:2rem;border-radius:14px;">
+      <div style="background:#0a2a3b;color:#fff;padding:1.25rem;
+                  border-radius:10px;text-align:center;">
+        <h1 style="margin:0;font-size:1.3rem;">🔔 New Booking</h1>
+      </div>
+      <div style="background:#fff;padding:1.5rem;border-radius:10px;margin-top:1rem;">
+        <table style="width:100%;font-size:0.92rem;">
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
+              <td style="text-align:right;font-weight:600;">{reference}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Customer</td>
+              <td style="text-align:right;font-weight:600;">{user_name}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Email</td>
+              <td style="text-align:right;font-weight:600;">{user_email}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Vehicle</td>
+              <td style="text-align:right;font-weight:600;">{vehicle}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Task</td>
+              <td style="text-align:right;font-weight:600;">{task}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">State</td>
+              <td style="text-align:right;font-weight:600;">{state}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
+              <td style="text-align:right;font-weight:700;font-size:1.05rem;">
+                ₦{total:,}</td></tr>
+        </table>
+        <p style="margin-top:1.25rem;color:#5e7a8c;font-size:0.88rem;">
+          Log in to the admin panel to approve or reject this booking.
+        </p>
+      </div>
+    </div>
+    """
+
+    return send_email(GMAIL_USER, subject, text, html)
+
+
+# ------------------------------------------------------------------
 # DOMINION COMPANY BANK DETAILS
 # ------------------------------------------------------------------
 COMPANY_BANK = {
@@ -149,7 +333,7 @@ COMPANY_BANK = {
 
 
 # ------------------------------------------------------------------
-# PRICE TABLES (must match the HTML)
+# PRICE TABLES
 # ------------------------------------------------------------------
 VEHICLE_PRICES = {
     "bike": 5000, "car": 10000, "suv": 15000, "van": 18000,
@@ -192,13 +376,11 @@ def generate_reference():
 # PUBLIC ROUTES
 # ==================================================================
 
-# ---------- HOME / LANDING ----------
 @app.route("/")
 def home():
     return render_template("about_website.html")
 
 
-# ---------- LOGIN (email OR username) ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -234,7 +416,6 @@ def login():
     return render_template("login.html")
 
 
-# ---------- CREATE ACCOUNT ----------
 @app.route("/create", methods=["GET", "POST"])
 def create():
     if request.method == "POST":
@@ -246,7 +427,6 @@ def create():
         nin       = (request.form.get("nin")       or "").strip()
         password  = request.form.get("password") or ""
 
-        # ---------- validation ----------
         errors = []
         if not firstname or not lastname:
             errors.append("First and last name are required.")
@@ -261,7 +441,6 @@ def create():
         if len(password) < 6:
             errors.append("Password must be at least 6 characters.")
 
-        # file upload
         file = request.files.get("nin_photo")
         saved_filename = None
         if not file or file.filename == "":
@@ -274,7 +453,6 @@ def create():
                 flash(e, "error")
             return redirect(url_for("create"))
 
-        # ---------- duplicate checks ----------
         db = get_db()
         if db.execute("SELECT 1 FROM users WHERE LOWER(username)=LOWER(?)", (username,)).fetchone():
             flash("That username is already taken. Please choose another.", "error")
@@ -286,13 +464,11 @@ def create():
             flash("An account with that NIN already exists.", "error")
             return redirect(url_for("create"))
 
-        # ---------- save NIN photo ----------
         original  = secure_filename(file.filename)
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         saved_filename = f"{nin}_{timestamp}_{original}"
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_filename))
 
-        # ---------- insert user ----------
         try:
             db.execute(
                 """INSERT INTO users
@@ -311,13 +487,28 @@ def create():
             flash(f"Could not create account: {ex}", "error")
             return redirect(url_for("create"))
 
+        # --- welcome email (optional) ---
+        try:
+            send_email(
+                to_email=email,
+                subject=f"Welcome to {COMPANY_NAME}!",
+                body_text=(
+                    f"Hi {firstname},\n\n"
+                    f"Welcome to {COMPANY_NAME}! Your account is ready.\n"
+                    f"Username: {username}\n\n"
+                    f"Sign in here to make your first booking.\n\n"
+                    f"— The {COMPANY_NAME} team"
+                ),
+            )
+        except Exception as e:
+            print(f"[email] Welcome email error: {e}")
+
         flash("Account created successfully. Please sign in.", "success")
         return redirect(url_for("login"))
 
     return render_template("create.html")
 
 
-# ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
     session.clear()
@@ -325,7 +516,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-# ---------- DASHBOARD ----------
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -343,7 +533,6 @@ def dashboard():
     )
 
 
-# ---------- BOOKING API (AJAX — multipart because of receipt) ----------
 @app.route("/api/book", methods=["POST"])
 @login_required
 def api_book():
@@ -354,7 +543,6 @@ def api_book():
     payment_bank   = (request.form.get("paymentBank") or "").strip()
     payment_ref    = (request.form.get("paymentReference") or "").strip()
 
-    # ---------- validation ----------
     if vehicle not in VEHICLE_PRICES:
         return jsonify(ok=False, error="Invalid vehicle type."), 400
     if task not in ("ride", "waybill", "transfer", "other"):
@@ -379,13 +567,11 @@ def api_book():
     total_price   = vehicle_price + state_price
     reference     = generate_reference()
 
-    # ---------- save the receipt ----------
     original  = secure_filename(receipt.filename)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     saved_receipt = f"receipt_{reference}_{timestamp}_{original}"
     receipt.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_receipt))
 
-    # ---------- insert booking ----------
     db = get_db()
     db.execute(
         """INSERT INTO bookings
@@ -404,6 +590,41 @@ def api_book():
     )
     db.commit()
 
+    # --- notify user that we received their booking ---
+    try:
+        user_row = db.execute(
+            "SELECT email, firstname FROM users WHERE id=?",
+            (session["user_id"],)
+        ).fetchone()
+        if user_row:
+            send_email(
+                to_email=user_row["email"],
+                subject=f"Booking {reference} — Received",
+                body_text=(
+                    f"Hi {user_row['firstname']},\n\n"
+                    f"We've received your booking {reference} for ₦{total_price:,}.\n"
+                    f"Status: PENDING — under review.\n\n"
+                    f"We'll email you again once it's been approved or rejected.\n\n"
+                    f"— {COMPANY_NAME}"
+                ),
+            )
+    except Exception as e:
+        print(f"[email] booking received email error: {e}")
+
+    # --- notify admin (you) that a new booking came in ---
+    try:
+        send_admin_new_booking_email(
+            reference=reference,
+            user_name=session.get("user_name", "Customer"),
+            user_email=user_row["email"] if user_row else "unknown",
+            vehicle=vehicle,
+            task=task if task != "other" else f"Other: {other_task}",
+            state=state,
+            total=total_price,
+        )
+    except Exception as e:
+        print(f"[email] admin notify error: {e}")
+
     return jsonify(
         ok=True,
         reference=reference,
@@ -416,7 +637,6 @@ def api_book():
     )
 
 
-# ---------- LIST BOOKINGS (JSON, for auto-refresh) ----------
 @app.route("/api/bookings")
 @login_required
 def api_bookings():
@@ -430,7 +650,6 @@ def api_bookings():
     return jsonify(ok=True, bookings=[dict(r) for r in rows])
 
 
-# ---------- SERVE UPLOADED FILES ----------
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
@@ -546,6 +765,28 @@ def admin_action():
     )
     db.commit()
 
+    # --- send email notification to the user ---
+    try:
+        user_row = db.execute(
+            """SELECT u.email, u.firstname, b.total_price
+               FROM bookings b
+               JOIN users u ON u.id = b.user_id
+               WHERE b.reference = ?""",
+            (reference,)
+        ).fetchone()
+
+        if user_row:
+            send_booking_status_email(
+                to_email=user_row["email"],
+                firstname=user_row["firstname"],
+                reference=reference,
+                total=user_row["total_price"],
+                status=new_status,
+                note=note,
+            )
+    except Exception as e:
+        print(f"[email] booking status email error: {e}")
+
     flash(f"Booking {reference} marked as {new_status.upper()}.", "success")
     return redirect(url_for("admin_booking_detail", reference=reference))
 
@@ -555,4 +796,4 @@ def admin_action():
 # ------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, host="0.0.0.0", port=5000) 
+    app.run(debug=True, host="0.0.0.0", port=5000)
