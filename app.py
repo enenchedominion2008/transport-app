@@ -316,9 +316,9 @@ def send_admin_new_booking_email(reference, user_name, user_email,
 # DOMINION COMPANY BANK DETAILS
 # ------------------------------------------------------------------
 COMPANY_BANK = {
-    "bank_name":      "Access Bank",
-    "account_number": "0123456789",
-    "account_name":   "Dominion Transport Solutions Ltd",
+    "bank_name":      "Fidelity Bank",
+    "account_number": "6153338187",
+    "account_name":   "Doinion Enenche",
 }
 
 
