@@ -1,17 +1,17 @@
 import os
 import sqlite3
 import re
-import smtplib
 from datetime import datetime
 from functools import wraps
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask import (
     Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, send_from_directory, g
 )
+
+# ---------- Resend (HTTP email API — works on Render free tier) ----------
+import resend
 
 # ------------------------------------------------------------------
 # CONFIG
@@ -40,9 +40,12 @@ ADMIN_PASSWORD_HASH = generate_password_hash("dominion2025")
 # ------------------------------------------------------------------
 # EMAIL CONFIG — pulled from Render environment variables
 # ------------------------------------------------------------------
-GMAIL_USER         = os.environ.get("GMAIL_USER")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
-COMPANY_NAME       = "Dominion Transport Solutions"
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+EMAIL_FROM     = os.environ.get("EMAIL_FROM", "onboarding@resend.dev")
+COMPANY_NAME   = "Dominion Transport Solutions"
+
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
 
 
 # ------------------------------------------------------------------
@@ -147,39 +150,32 @@ def allowed_file(filename):
 
 
 # ------------------------------------------------------------------
-# EMAIL HELPER
+# EMAIL HELPER (via Resend HTTP API)
 # ------------------------------------------------------------------
 def send_email(to_email, subject, body_text, body_html=None):
-    """
-    Send an email via Gmail SMTP.
-    Returns True on success, False on failure.
-    """
-    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
-        print("[email] GMAIL_USER or GMAIL_APP_PASSWORD not set — skipping.")
+    """Send an email using Resend API. Returns True on success."""
+    if not RESEND_API_KEY:
+        print("[email] RESEND_API_KEY not set — skipping.")
         return False
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["From"]    = f"{COMPANY_NAME} <{GMAIL_USER}>"
-        msg["To"]      = to_email
-        msg["Subject"] = subject
-
-        # plain text version
-        msg.attach(MIMEText(body_text, "plain"))
-        # optional HTML version
+        params = {
+            "from":    f"{COMPANY_NAME} <{EMAIL_FROM}>",
+            "to":      [to_email],
+            "subject": subject,
+        }
         if body_html:
-            msg.attach(MIMEText(body_html, "html"))
+            params["html"] = body_html
+            params["text"] = body_text
+        else:
+            params["text"] = body_text
 
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
-            server.starttls()
-            server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-            server.sendmail(GMAIL_USER, to_email, msg.as_string())
-
-        print(f"[email] Sent to {to_email}: {subject}")
+        result = resend.Emails.send(params)
+        print(f"[email] Sent to {to_email}: {subject} → {result}")
         return True
 
     except Exception as e:
-        print(f"[email] Failed to send to {to_email}: {e}")
+        print(f"[email] Failed to send to {to_email}: {type(e).__name__} — {e}")
         return False
 
 
@@ -271,10 +267,10 @@ def send_booking_status_email(to_email, firstname, reference, total,
 def send_admin_new_booking_email(reference, user_name, user_email,
                                  vehicle, task, state, total):
     """Notify the admin when a new booking is submitted."""
-    # Sends to the same Gmail address that's sending (you)
-    if not GMAIL_USER:
+    if not RESEND_API_KEY:
         return False
 
+    admin_email = os.environ.get("GMAIL_USER", EMAIL_FROM)
     subject = f"🔔 New Booking {reference} — ₦{total:,}"
     text = (
         f"New booking received!\n\n"
@@ -284,8 +280,7 @@ def send_admin_new_booking_email(reference, user_name, user_email,
         f"Task:      {task}\n"
         f"State:     {state}\n"
         f"Amount:    ₦{total:,}\n\n"
-        f"Log in to the admin panel to approve or reject:\n"
-        f"/admin/login\n"
+        f"Log in to the admin panel to approve or reject.\n"
     )
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
@@ -309,17 +304,12 @@ def send_admin_new_booking_email(reference, user_name, user_email,
           <tr><td style="padding:6px 0;color:#5e7a8c;">State</td>
               <td style="text-align:right;font-weight:600;">{state}</td></tr>
           <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
-              <td style="text-align:right;font-weight:700;font-size:1.05rem;">
-                ₦{total:,}</td></tr>
+              <td style="text-align:right;font-weight:700;">₦{total:,}</td></tr>
         </table>
-        <p style="margin-top:1.25rem;color:#5e7a8c;font-size:0.88rem;">
-          Log in to the admin panel to approve or reject this booking.
-        </p>
       </div>
     </div>
     """
-
-    return send_email(GMAIL_USER, subject, text, html)
+    return send_email(admin_email, subject, text, html)
 
 
 # ------------------------------------------------------------------
@@ -385,7 +375,7 @@ def home():
 def login():
     if request.method == "POST":
         identifier = (request.form.get("identifier") or "").strip()
-        password   = request.form.get("password") or ""
+        password   = (request.form.get("password") or "")
 
         if not identifier or not password:
             flash("Please enter your email/username and password.", "error")
@@ -487,7 +477,7 @@ def create():
             flash(f"Could not create account: {ex}", "error")
             return redirect(url_for("create"))
 
-        # --- welcome email (optional) ---
+        # --- welcome email ---
         try:
             send_email(
                 to_email=email,
