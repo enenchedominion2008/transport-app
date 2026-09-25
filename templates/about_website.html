@@ -5,17 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dominion Transport Solutions · Book Rides, Waybills & Deliveries</title>
   <style>
-    /* ---------- RESET & BASE ---------- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    /* ---------- RESET ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f7fafd;
@@ -23,381 +15,765 @@
       overflow-x: hidden;
       line-height: 1.6;
     }
+    a { -webkit-tap-highlight-color: transparent; }
+
+    /* ---------- SCROLL PROGRESS BAR ---------- */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0;
+      height: 3px; width: 0%;
+      background: linear-gradient(90deg, #2d9cdb 0%, #7dc9f0 50%, #2d9cdb 100%);
+      z-index: 2000;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 12px rgba(45, 156, 219, 0.6);
+    }
 
     /* ---------- NAVBAR ---------- */
     .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
+      position: fixed; top: 0; left: 0; width: 100%;
       padding: 1rem 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 4px 24px rgba(10, 42, 59, 0.06);
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
       z-index: 1000;
+      transition: all 0.3s ease;
     }
-
+    .navbar.scrolled {
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 32px rgba(10, 42, 59, 0.08);
+      padding: 0.7rem 2.5rem;
+    }
     .nav-brand {
-      display: flex;
-      align-items: baseline;
-      gap: 0.35rem;
-      font-size: 1.35rem;
-      font-weight: 700;
+      display: flex; align-items: baseline; gap: 0.35rem;
+      font-size: 1.35rem; font-weight: 700;
       letter-spacing: -0.02em;
-      color: #0a2a3b;
-      text-decoration: none;
+      color: #0a2a3b; text-decoration: none;
     }
-
-    .nav-brand span.accent {
-      font-weight: 300;
-      color: #2d9cdb;
+    .nav-brand span.accent { font-weight: 300; color: #2d9cdb; }
+    .nav-brand .nav-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
+      margin-left: 0.4rem;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+      animation: navPulse 2s infinite;
+    }
+    @keyframes navPulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
+      50%      { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.08); }
     }
 
     .nav-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
+      display: flex; gap: 2rem; list-style: none;
     }
-
     .nav-links a {
       text-decoration: none;
-      color: #2c4a5e;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: color 0.2s;
-      position: relative;
+      color: #2c4a5e; font-size: 0.9rem; font-weight: 500;
+      position: relative; transition: color 0.2s;
     }
-
     .nav-links a::after {
-      content: "";
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0;
-      height: 2px;
+      content: ""; position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 2px;
       background: #2d9cdb;
       transition: width 0.25s ease;
     }
+    .nav-links a:hover { color: #0a2a3b; }
+    .nav-links a:hover::after { width: 100%; }
 
-    .nav-links a:hover {
-      color: #0a2a3b;
+    .nav-cta {
+      padding: 0.6rem 1.35rem;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff; text-decoration: none;
+      font-size: 0.85rem; font-weight: 600;
+      border-radius: 40px;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 20px -6px rgba(45, 156, 219, 0.55);
+    }
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px -8px rgba(45, 156, 219, 0.7);
     }
 
-    .nav-links a:hover::after {
-      width: 100%;
+    /* mobile menu toggle */
+    .nav-toggle {
+      display: none; background: none; border: none;
+      width: 30px; height: 30px; cursor: pointer;
+      flex-direction: column; justify-content: center; gap: 5px;
     }
+    .nav-toggle span {
+      display: block; height: 2px; width: 100%; background: #0a2a3b;
+      transition: all 0.3s; border-radius: 2px;
+    }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      position: fixed; top: 60px; left: 0; right: 0;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      padding: 1.5rem;
+      flex-direction: column; gap: 0.5rem;
+      box-shadow: 0 20px 40px -12px rgba(10, 42, 59, 0.2);
+      transform: translateY(-110%);
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+      display: flex;
+    }
+    .mobile-menu.open { transform: translateY(0); }
+    .mobile-menu a {
+      padding: 0.9rem 1rem; border-radius: 12px;
+      text-decoration: none; color: #2c4a5e;
+      font-size: 0.95rem; font-weight: 500;
+      transition: background 0.2s;
+    }
+    .mobile-menu a:hover { background: #f0f7fc; color: #0a2a3b; }
 
     /* ---------- HERO ---------- */
     .hero {
-      height: 100vh;
-      width: 100%;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 100vh; min-height: 640px;
+      width: 100%; position: relative;
+      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
       background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
     }
-
     .hero img {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; object-fit: cover;
       z-index: 1;
+      animation: kenBurns 20s ease-in-out infinite alternate;
     }
-
+    @keyframes kenBurns {
+      from { transform: scale(1); }
+      to   { transform: scale(1.12); }
+    }
     .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(10, 28, 43, 0.4) 0%, rgba(10, 28, 43, 0.8) 100%);
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg,
+        rgba(10, 28, 43, 0.55) 0%,
+        rgba(10, 28, 43, 0.72) 55%,
+        rgba(10, 28, 43, 0.92) 100%);
       z-index: 2;
     }
 
-    .hero-content {
-      position: relative;
-      z-index: 3;
-      text-align: center;
-      color: #ffffff;
-      padding: 2rem;
-      max-width: 900px;
-      animation: fadeUp 1s ease both;
+    /* floating gradient orbs */
+    .hero .orb {
+      position: absolute; border-radius: 50%;
+      pointer-events: none;
+      filter: blur(60px);
+      z-index: 2;
+      opacity: 0.6;
+    }
+    .hero .orb.o1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(45, 156, 219, 0.6), transparent 70%);
+      top: -150px; left: -100px;
+      animation: float1 14s ease-in-out infinite;
+    }
+    .hero .orb.o2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(125, 201, 240, 0.45), transparent 70%);
+      bottom: -120px; right: -80px;
+      animation: float2 18s ease-in-out infinite;
+    }
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0); }
+      50%      { transform: translate(60px, 40px); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0); }
+      50%      { transform: translate(-50px, -30px); }
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+    /* particles */
+    .particles {
+      position: absolute; inset: 0; z-index: 2;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: rgba(125, 201, 240, 0.7);
+      border-radius: 50%;
+      animation: rise linear infinite;
+    }
+    @keyframes rise {
+      from { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      to   { transform: translateY(-20px) scale(1); opacity: 0; }
+    }
+
+    .hero-content {
+      position: relative; z-index: 3;
+      text-align: center; color: #ffffff;
+      padding: 2rem; max-width: 950px;
     }
 
     .hero-tag {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
       color: #7dc9f0;
-      background: rgba(45, 156, 219, 0.15);
-      border: 1px solid rgba(125, 201, 240, 0.4);
-      padding: 0.45rem 1.1rem;
+      background: rgba(45, 156, 219, 0.12);
+      border: 1px solid rgba(125, 201, 240, 0.35);
+      padding: 0.5rem 1.2rem;
       border-radius: 60px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
+      backdrop-filter: blur(10px);
+      animation: fadeUp 1s ease 0.2s both;
+    }
+    .hero-tag .pulse {
+      width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+      animation: navPulse 2s infinite;
     }
 
     .hero-content h1 {
-      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-size: clamp(2.2rem, 6.5vw, 4.5rem);
       font-weight: 700;
       letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 1.25rem;
-      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      line-height: 1.05;
+      margin-bottom: 1.4rem;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     }
-
+    .hero-content h1 .line {
+      display: block;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: lineUp 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+    }
+    .hero-content h1 .line:nth-child(1) { animation-delay: 0.4s; }
+    .hero-content h1 .line:nth-child(2) { animation-delay: 0.6s; }
+    @keyframes lineUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
     .hero-content h1 span {
       font-weight: 300;
-      color: #7dc9f0;
+      background: linear-gradient(135deg, #7dc9f0 0%, #2d9cdb 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .hero-content p {
-      font-size: clamp(1rem, 1.8vw, 1.2rem);
-      font-weight: 400;
+      font-size: clamp(1rem, 1.8vw, 1.15rem);
       color: rgba(255, 255, 255, 0.9);
-      max-width: 640px;
-      margin: 0 auto 2rem;
+      max-width: 660px; margin: 0 auto 2.25rem;
       text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+      animation: fadeUp 1s ease 0.8s both;
     }
 
-    /* scroll indicator */
+    .hero-actions {
+      display: flex; gap: 1rem; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 3rem;
+      animation: fadeUp 1s ease 1s both;
+    }
+
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 1rem 2rem;
+      font-size: 0.95rem; font-weight: 600;
+      border-radius: 40px;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+    }
+    .hero-btn.primary {
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff;
+      box-shadow: 0 14px 32px -10px rgba(45, 156, 219, 0.75);
+    }
+    .hero-btn.primary:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 20px 40px -12px rgba(45, 156, 219, 0.85);
+    }
+    .hero-btn.ghost {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+    }
+    .hero-btn.ghost:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-3px);
+    }
+
+    /* live ticker */
+    .ticker {
+      display: flex; gap: 2.5rem; justify-content: center;
+      flex-wrap: wrap;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      max-width: 700px; margin: 0 auto;
+      animation: fadeUp 1s ease 1.2s both;
+    }
+    .ticker .item {
+      text-align: center;
+    }
+    .ticker .item .num {
+      font-size: 1.4rem; font-weight: 700; color: #7dc9f0;
+      letter-spacing: -0.02em;
+      display: block;
+      line-height: 1.1;
+    }
+    .ticker .item .lbl {
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 0.3rem;
+    }
+    .ticker .divider {
+      width: 1px; background: rgba(255, 255, 255, 0.15);
+      align-self: stretch;
+    }
+
+    /* scroll hint */
     .scroll-hint {
-      position: absolute;
-      bottom: 2.5rem;
-      left: 50%;
+      position: absolute; bottom: 2rem; left: 50%;
       transform: translateX(-50%);
       z-index: 3;
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 0.72rem;
-      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.68rem; letter-spacing: 0.2em;
       text-transform: uppercase;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.6rem;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.6rem;
       animation: bounce 2.2s infinite;
     }
-
     .scroll-hint .arrow {
-      width: 22px;
-      height: 22px;
-      border-right: 2px solid rgba(255, 255, 255, 0.9);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.9);
+      width: 18px; height: 18px;
+      border-right: 2px solid rgba(255, 255, 255, 0.85);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.85);
       transform: rotate(45deg);
     }
-
     @keyframes bounce {
       0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
       40% { transform: translateX(-50%) translateY(-10px); }
       60% { transform: translateX(-50%) translateY(-5px); }
     }
 
-    /* ---------- HOW IT WORKS ---------- */
-    .how-it-works {
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- SECTIONS ---------- */
+    .section {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 6rem 2rem 3rem;
-      text-align: center;
+      padding: 6rem 2rem;
+      position: relative;
     }
 
     .section-label {
       display: inline-block;
-      font-size: 0.78rem;
-      font-weight: 700;
+      font-size: 0.75rem; font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.2em;
       color: #2d9cdb;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.85rem;
+      padding-left: 0.85rem;
       border-left: 3px solid #2d9cdb;
-      padding-left: 0.75rem;
     }
 
     .section-title {
-      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-size: clamp(1.8rem, 3.8vw, 2.8rem);
       font-weight: 700;
       letter-spacing: -0.02em;
       color: #0a2a3b;
       margin-bottom: 1rem;
-      line-height: 1.2;
+      line-height: 1.15;
     }
 
     .section-desc {
       font-size: 1.05rem;
       color: #5e7a8c;
       max-width: 640px;
-      margin: 0 auto 3.5rem;
+      margin: 0 auto 3rem;
     }
 
-    /* steps row */
+    .center { text-align: center; }
+
+    /* scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1),
+                  transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ---------- STEPS ---------- */
     .steps {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 1.5rem;
-      margin-bottom: 6rem;
-      text-align: left;
     }
-
     .step {
-      background: #ffffff;
-      padding: 1.75rem 1.5rem;
-      border-radius: 22px;
-      border: 1px solid rgba(45, 156, 219, 0.1);
-      box-shadow: 0 14px 28px -14px rgba(10, 42, 59, 0.12);
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 2rem 1.75rem;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 20px 40px -20px rgba(10, 42, 59, 0.15);
       position: relative;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1),
+                  box-shadow 0.4s ease;
+      transform-style: preserve-3d;
+      perspective: 800px;
     }
-
+    .step::before {
+      content: "";
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #2d9cdb 0%, #7dc9f0 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
     .step:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 22px 40px -16px rgba(10, 42, 59, 0.22);
+      transform: translateY(-8px);
+      box-shadow: 0 30px 60px -22px rgba(10, 42, 59, 0.28);
     }
+    .step:hover::before { opacity: 1; }
 
     .step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 14px;
       background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 8px 18px -6px rgba(45, 156, 219, 0.5);
+      color: #fff; font-weight: 700; font-size: 1rem;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 12px 24px -8px rgba(45, 156, 219, 0.6);
     }
-
     .step h4 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #0a2a3b;
-      margin-bottom: 0.4rem;
+      font-size: 1.05rem; font-weight: 700;
+      color: #0a2a3b; margin-bottom: 0.5rem;
     }
+    .step p { font-size: 0.9rem; color: #5e7a8c; line-height: 1.6; }
 
-    .step p {
-      font-size: 0.88rem;
-      color: #5e7a8c;
-      line-height: 1.55;
-    }
-
-    /* ---------- SERVICES ---------- */
-    .services-wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 3rem 2rem 5rem;
-    }
-
+    /* ---------- FEATURES ---------- */
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.75rem;
-      margin-top: 2.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1.5rem;
     }
-
     .feature-card {
-      background: #ffffff;
-      padding: 2.2rem 1.8rem;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 2.2rem 1.9rem;
       border-radius: 24px;
-      box-shadow: 0 16px 32px -14px rgba(10, 42, 59, 0.12);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border: 1px solid rgba(45, 156, 219, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 20px 40px -20px rgba(10, 42, 59, 0.15);
+      transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+      position: relative;
+      overflow: hidden;
     }
-
+    .feature-card::after {
+      content: "";
+      position: absolute;
+      top: -50%; right: -30%;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(45, 156, 219, 0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
     .feature-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 24px 44px -16px rgba(10, 42, 59, 0.2);
+      transform: translateY(-8px);
+      box-shadow: 0 32px 60px -22px rgba(10, 42, 59, 0.28);
+      border-color: rgba(125, 201, 240, 0.6);
     }
+    .feature-card:hover::after { opacity: 1; }
 
     .feature-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
+      width: 56px; height: 56px;
+      border-radius: 18px;
       background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: #fff;
       margin-bottom: 1.25rem;
-      color: #ffffff;
-      box-shadow: 0 8px 18px -6px rgba(45, 156, 219, 0.45);
+      box-shadow: 0 12px 24px -8px rgba(45, 156, 219, 0.55);
+      position: relative; z-index: 2;
+      transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
-
+    .feature-card:hover .feature-icon {
+      transform: rotate(-6deg) scale(1.08);
+    }
     .feature-card h3 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin-bottom: 0.6rem;
-      color: #0a2a3b;
+      font-size: 1.15rem; font-weight: 700;
+      margin-bottom: 0.6rem; color: #0a2a3b;
+      position: relative; z-index: 2;
     }
-
     .feature-card p {
-      font-size: 0.92rem;
-      color: #5e7a8c;
-      line-height: 1.65;
+      font-size: 0.92rem; color: #5e7a8c; line-height: 1.65;
+      position: relative; z-index: 2;
     }
 
-    /* ---------- VEHICLES STRIP ---------- */
+    /* ---------- VEHICLE SHOWCASE ---------- */
     .vehicles-strip {
       background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
-      padding: 4rem 2rem;
-      text-align: center;
-      color: #ffffff;
+      padding: 5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .vehicles-strip::before {
+      content: "";
+      position: absolute; top: -30%; left: -10%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(45, 156, 219, 0.3) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .vehicles-strip::after {
+      content: "";
+      position: absolute; bottom: -40%; right: -10%;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(125, 201, 240, 0.22) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
     }
 
-    .vehicles-strip h3 {
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      font-weight: 700;
+    .vehicles-inner {
+      position: relative; z-index: 2;
+      max-width: 1100px; margin: 0 auto; text-align: center;
+    }
+    .vehicles-inner h3 {
+      font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+      font-weight: 700; color: #fff;
       letter-spacing: -0.02em;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .vehicles-inner > p {
+      font-size: 1rem; color: rgba(255, 255, 255, 0.75);
+      max-width: 560px; margin: 0 auto 3rem;
     }
 
-    .vehicles-strip p {
-      font-size: 1rem;
-      color: rgba(255, 255, 255, 0.75);
-      max-width: 560px;
-      margin: 0 auto 2.5rem;
+    .vehicle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .vehicle-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      padding: 1.5rem 1rem;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+      text-align: center;
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+    .vehicle-card:hover {
+      transform: translateY(-6px);
+      background: rgba(45, 156, 219, 0.16);
+      border-color: rgba(125, 201, 240, 0.55);
+    }
+    .vehicle-card.active {
+      background: linear-gradient(135deg, rgba(45, 156, 219, 0.28) 0%, rgba(125, 201, 240, 0.14) 100%);
+      border-color: #7dc9f0;
+      box-shadow: 0 0 30px rgba(45, 156, 219, 0.35);
+    }
+    .vehicle-card .v-emoji {
+      font-size: 2.2rem; display: block;
+      margin-bottom: 0.6rem;
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .vehicle-card:hover .v-emoji {
+      transform: scale(1.15) rotate(-6deg);
+    }
+    .vehicle-card .v-name {
+      font-size: 0.92rem; font-weight: 700;
+      color: #fff; margin-bottom: 0.25rem;
+    }
+    .vehicle-card .v-price {
+      font-size: 0.78rem; font-weight: 600;
+      color: #7dc9f0;
     }
 
-    .vehicle-pills {
-      display: flex;
-      flex-wrap: wrap;
+    .vehicle-info-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 24px;
+      padding: 2rem;
+      max-width: 720px; margin: 0 auto;
+      text-align: center;
+      min-height: 130px;
+      display: flex; flex-direction: column;
       justify-content: center;
-      gap: 0.75rem;
+      transition: all 0.4s ease;
+      color: #fff;
+    }
+    .vehicle-info-panel .info-title {
+      font-size: 1.35rem; font-weight: 700;
+      color: #fff; margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .vehicle-info-panel .info-desc {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+    }
+    .vehicle-info-panel .info-tags {
+      display: flex; gap: 0.5rem; justify-content: center;
+      flex-wrap: wrap; margin-top: 1rem;
+    }
+    .vehicle-info-panel .info-tag {
+      font-size: 0.72rem; font-weight: 600;
+      color: #7dc9f0;
+      background: rgba(125, 201, 240, 0.12);
+      border: 1px solid rgba(125, 201, 240, 0.3);
+      padding: 0.3rem 0.85rem;
+      border-radius: 40px;
+    }
+
+    /* ---------- STATS SECTION ---------- */
+    .stats-section {
+      background: #f7fafd;
+      padding: 5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .stats-section::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 80%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(45, 156, 219, 0.4), transparent);
+    }
+    .stats-grid {
+      max-width: 1000px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(14px);
+      border-radius: 20px;
+      border: 1px solid rgba(45, 156, 219, 0.1);
+      box-shadow: 0 16px 32px -18px rgba(10, 42, 59, 0.15);
+      transition: all 0.35s ease;
+    }
+    .stat-box:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 44px -18px rgba(10, 42, 59, 0.25);
+      border-color: rgba(45, 156, 219, 0.35);
+    }
+    .stat-box .num {
+      font-size: 2.4rem; font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .stat-box .lbl {
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #5e7a8c;
+    }
+
+    /* ---------- TESTIMONIALS ---------- */
+    .testimonials {
       max-width: 900px;
       margin: 0 auto;
+      position: relative;
+      min-height: 260px;
+    }
+    .testimonial-slide {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 2.5rem 2rem;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 24px 50px -22px rgba(10, 42, 59, 0.2);
+      text-align: center;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .testimonial-slide.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .testimonial-slide .quote-mark {
+      font-size: 3rem; color: #7dc9f0;
+      line-height: 0.5; margin-bottom: 1.25rem;
+      font-family: Georgia, serif;
+    }
+    .testimonial-slide .quote-text {
+      font-size: 1.05rem;
+      color: #2c4a5e;
+      line-height: 1.75;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    .testimonial-slide .author {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.85rem;
+    }
+    .testimonial-slide .author .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff; font-weight: 700; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .testimonial-slide .author .who {
+      text-align: left;
+    }
+    .testimonial-slide .author .who .name {
+      font-weight: 700; color: #0a2a3b; font-size: 0.92rem;
+    }
+    .testimonial-slide .author .who .role {
+      font-size: 0.78rem; color: #839eae;
     }
 
-    .vehicle-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.7rem 1.3rem;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(125, 201, 240, 0.35);
-      border-radius: 60px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #e8f4fc;
-      transition: all 0.25s ease;
+    .testimonial-dots {
+      display: flex; gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1.5rem;
     }
-
-    .vehicle-pill:hover {
-      background: rgba(45, 156, 219, 0.2);
-      border-color: #7dc9f0;
-      transform: translateY(-2px);
+    .testimonial-dots .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #dae2e9;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+      padding: 0;
+    }
+    .testimonial-dots .dot.active {
+      background: #2d9cdb;
+      width: 30px;
+      border-radius: 40px;
     }
 
     /* ---------- CTA SECTION ---------- */
@@ -406,156 +782,307 @@
       margin: 5rem auto 0;
       background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
       border-radius: 36px;
-      padding: 4.5rem 2rem;
+      padding: 5rem 2rem;
       text-align: center;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 32px 64px -20px rgba(10, 42, 59, 0.5);
+      box-shadow: 0 40px 80px -28px rgba(10, 42, 59, 0.55);
+      isolation: isolate;
     }
-
     .cta-section::before {
       content: "";
       position: absolute;
-      top: -60%;
-      right: -10%;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.35) 0%, transparent 70%);
+      top: -60%; right: -10%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(45, 156, 219, 0.4) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
+      animation: pulseGlow 6s ease-in-out infinite;
     }
-
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50%      { transform: scale(1.15); opacity: 1; }
+    }
     .cta-section::after {
       content: "";
       position: absolute;
-      bottom: -50%;
-      left: -10%;
-      width: 350px;
-      height: 350px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.22) 0%, transparent 70%);
+      bottom: -50%; left: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(125, 201, 240, 0.28) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
     }
-
-    .cta-section > * {
-      position: relative;
-      z-index: 2;
+    .cta-content {
+      position: relative; z-index: 2;
     }
-
     .cta-section h2 {
       font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 700;
-      color: #ffffff;
+      font-weight: 700; color: #fff;
       letter-spacing: -0.02em;
       margin-bottom: 1rem;
+      line-height: 1.15;
     }
-
+    .cta-section h2 span {
+      background: linear-gradient(135deg, #7dc9f0 0%, #2d9cdb 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .cta-section p {
       font-size: 1.05rem;
       color: rgba(255, 255, 255, 0.8);
-      max-width: 520px;
-      margin: 0 auto 2.5rem;
+      max-width: 540px; margin: 0 auto 2.5rem;
     }
-
-    .cta-buttons {
-      display: flex;
-      gap: 1.25rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem 2.6rem;
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
+    .cta-btn-large {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 1.15rem 3rem;
+      font-size: 1.05rem; font-weight: 700;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff;
       border-radius: 60px;
-      cursor: pointer;
       text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+      box-shadow: 0 20px 40px -12px rgba(45, 156, 219, 0.75);
       border: none;
-      transition: all 0.25s ease;
+      cursor: pointer;
       font-family: inherit;
-      white-space: nowrap;
     }
-
-    .btn-signup {
-      background: #2d9cdb;
-      color: #ffffff;
-      box-shadow: 0 12px 28px -8px rgba(45, 156, 219, 0.65);
+    .cta-btn-large:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 28px 52px -14px rgba(45, 156, 219, 0.85);
     }
-
-    .btn-signup:hover {
-      background: #1d7bb0;
-      transform: translateY(-3px);
-      box-shadow: 0 18px 34px -10px rgba(45, 156, 219, 0.75);
+    .cta-btn-large .arrow-r {
+      transition: transform 0.3s;
+      display: inline-block;
     }
-
-    .btn:active {
-      transform: translateY(-1px) scale(0.98);
+    .cta-btn-large:hover .arrow-r {
+      transform: translateX(5px);
     }
 
     /* ---------- FOOTER ---------- */
     .footer {
-      text-align: center;
-      padding: 2.5rem 1rem;
-      font-size: 0.82rem;
-      color: #839eae;
       background: #f7fafd;
+      padding: 4rem 2rem 2rem;
       border-top: 1px solid #e2edf5;
       margin-top: 5rem;
     }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.2fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    .footer-col h5 {
+      font-size: 0.8rem; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #0a2a3b;
+      margin-bottom: 1rem;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li {
+      margin-bottom: 0.55rem;
+    }
+    .footer-col ul li a {
+      font-size: 0.88rem; color: #5e7a8c;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: #2d9cdb; }
 
-    .footer strong {
-      color: #2c4a5e;
+    .footer-brand .nav-brand {
+      margin-bottom: 0.9rem;
+    }
+    .footer-brand p {
+      font-size: 0.88rem;
+      color: #5e7a8c;
+      line-height: 1.65;
+      max-width: 320px;
+    }
+
+    .newsletter-form {
+      display: flex; gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .newsletter-form input {
+      flex: 1;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.85rem;
+      border: 1.5px solid #dae2e9;
+      border-radius: 12px;
+      background: #fff;
+      outline: none;
+      font-family: inherit;
+      color: #0a2a3b;
+      transition: border-color 0.2s;
+    }
+    .newsletter-form input:focus {
+      border-color: #2d9cdb;
+      box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
+    }
+    .newsletter-form button {
+      padding: 0.65rem 1rem;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
       font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .newsletter-form button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px -4px rgba(45, 156, 219, 0.6);
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid #e2edf5;
+      font-size: 0.82rem;
+      color: #839eae;
+    }
+    .footer-bottom strong { color: #2c4a5e; }
+
+    /* ---------- BACK TO TOP ---------- */
+    .back-to-top {
+      position: fixed; bottom: 2rem; right: 2rem;
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 14px 30px -8px rgba(45, 156, 219, 0.65);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(12px);
+      transition: all 0.3s ease;
+      z-index: 900;
+    }
+    .back-to-top.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .back-to-top:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px -8px rgba(45, 156, 219, 0.8);
     }
 
     /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+      .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem 1.5rem;
+      }
+    }
     @media (max-width: 768px) {
       .navbar { padding: 0.85rem 1.25rem; }
-      .nav-links { gap: 1.2rem; }
-      .nav-links a { font-size: 0.82rem; }
+      .navbar.scrolled { padding: 0.7rem 1.25rem; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-toggle { display: flex; }
+      .section { padding: 4rem 1.25rem; }
       .hero-content h1 { font-size: 2.2rem; }
-      .how-it-works { padding: 4rem 1.25rem 2rem; }
-      .services-wrap { padding: 2rem 1.25rem 3rem; }
       .cta-section { padding: 3.5rem 1.5rem; border-radius: 28px; margin: 4rem 1.25rem 0; }
-      .cta-buttons { flex-direction: column; align-items: center; }
-      .btn { width: 100%; max-width: 320px; }
+      .ticker { gap: 1.25rem; padding: 0.85rem 1rem; }
+      .ticker .item .num { font-size: 1.15rem; }
+      .testimonial-slide { padding: 2rem 1.4rem; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .back-to-top { bottom: 1.25rem; right: 1.25rem; }
     }
-
     @media (max-width: 480px) {
-      .nav-links { display: none; }
       .hero-content p { font-size: 0.95rem; }
-      .feature-card { padding: 1.8rem 1.4rem; }
-      .step { padding: 1.5rem 1.25rem; }
+      .hero-actions { flex-direction: column; }
+      .hero-btn { width: 100%; justify-content: center; }
+      .feature-card { padding: 1.75rem 1.4rem; }
+      .step { padding: 1.75rem 1.4rem; }
+      .vehicle-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
   <!-- ---------- NAVBAR ---------- -->
-  <nav class="navbar">
+  <nav class="navbar" id="navbar">
     <a href="#" class="nav-brand">
       Dominion <span class="accent">Transport</span>
+      <span class="nav-dot"></span>
     </a>
     <ul class="nav-links">
       <li><a href="#how">How it works</a></li>
       <li><a href="#services">Services</a></li>
-      <li><a href="#book">Book now</a></li>
+      <li><a href="#vehicles">Vehicles</a></li>
+      <li><a href="#reviews">Reviews</a></li>
     </ul>
+    <a href="{{ url_for('login') }}" class="nav-cta">Sign in</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#how" onclick="closeMobile()">How it works</a>
+    <a href="#services" onclick="closeMobile()">Services</a>
+    <a href="#vehicles" onclick="closeMobile()">Vehicles</a>
+    <a href="#reviews" onclick="closeMobile()">Reviews</a>
+    <a href="{{ url_for('login') }}" style="background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%); color: #fff; text-align: center; margin-top: 0.5rem;">Sign in</a>
+  </div>
 
   <!-- ---------- HERO ---------- -->
   <section class="hero">
-    <img src="ChatGPTImage.png" alt="Dominion Transport">
+    <img src="{{ url_for('static', filename='ChatGPTImage.png') }}" alt="Dominion Transport">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="particles" id="particles"></div>
+
     <div class="hero-content">
-      <div class="hero-tag">Book a vehicle in seconds</div>
-      <h1>Any Vehicle.<br><span>Any Task. Any State.</span></h1>
+      <div class="hero-tag">
+        <span class="pulse"></span>
+        Book a vehicle in seconds
+      </div>
+      <h1>
+        <span class="line">Any Vehicle.</span>
+        <span class="line">Any Task. <span>Any State.</span></span>
+      </h1>
       <p>From a quick ride across town to moving goods interstate — Dominion Transport Solutions gets your booking done fast and transparently. Pick your vehicle, choose your task, see the price, pay, and go.</p>
+
+      <div class="hero-actions">
+        <a href="{{ url_for('create') }}" class="hero-btn primary">
+          Get Started Free <span>→</span>
+        </a>
+        <a href="#how" class="hero-btn ghost">
+          How it works
+        </a>
+      </div>
+
+      <div class="ticker">
+        <div class="item">
+          <span class="num" data-count="7">0</span>
+          <span class="lbl">Vehicles</span>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+          <span class="num" data-count="36">0</span>
+          <span class="lbl">States</span>
+        </div>
+        <div class="divider"></div>
+        <div class="item">
+          <span class="num" data-count="5000">0</span>
+          <span class="lbl">Bookings</span>
+        </div>
+      </div>
     </div>
+
     <div class="scroll-hint">
       <span>Scroll to explore</span>
       <div class="arrow"></div>
@@ -563,30 +1090,30 @@
   </section>
 
   <!-- ---------- HOW IT WORKS ---------- -->
-  <section class="how-it-works" id="how">
-    <span class="section-label">How it works</span>
-    <h2 class="section-title">Book a vehicle in four simple steps.</h2>
-    <p class="section-desc">
-      Whether you're booking a ride, sending a waybill, or moving goods across states — the process is the same. Simple, fast, and clear.
-    </p>
+  <section class="section" id="how">
+    <div class="center reveal">
+      <span class="section-label">How it works</span>
+      <h2 class="section-title">Book a vehicle in four simple steps.</h2>
+      <p class="section-desc">Whether you're booking a ride, sending a waybill, or moving goods across states — the process is the same. Simple, fast, and clear.</p>
+    </div>
 
     <div class="steps">
-      <div class="step">
+      <div class="step reveal">
         <div class="step-num">1</div>
         <h4>Choose your vehicle</h4>
         <p>Bike, car, SUV, van, or truck — pick the ride that fits your load and your budget.</p>
       </div>
-      <div class="step">
+      <div class="step reveal">
         <div class="step-num">2</div>
         <h4>Pick your task</h4>
         <p>Booking a ride, waybilling a package, transferring goods, or something else entirely — just tell us what you need.</p>
       </div>
-      <div class="step">
+      <div class="step reveal">
         <div class="step-num">3</div>
         <h4>See your price instantly</h4>
         <p>We add the vehicle fee to your destination state fee and show you the total — no hidden charges, no surprises.</p>
       </div>
-      <div class="step">
+      <div class="step reveal">
         <div class="step-num">4</div>
         <h4>Pay and we move</h4>
         <p>Pay securely through your bank, upload your receipt, and our driver is on the way.</p>
@@ -595,40 +1122,40 @@
   </section>
 
   <!-- ---------- SERVICES ---------- -->
-  <section class="services-wrap" id="services">
-    <span class="section-label">What we offer</span>
-    <h2 class="section-title">Built for rides, waybills, and everything in between.</h2>
-    <p class="section-desc">
-      Dominion Transport Solutions handles the everyday transport needs of individuals and small businesses — quickly, fairly, and without the runaround.
-    </p>
+  <section class="section" id="services">
+    <div class="center reveal">
+      <span class="section-label">What we offer</span>
+      <h2 class="section-title">Built for rides, waybills, and everything in between.</h2>
+      <p class="section-desc">Dominion Transport Solutions handles the everyday transport needs of individuals and small businesses — quickly, fairly, and without the runaround.</p>
+    </div>
 
     <div class="features">
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">🚕</div>
         <h3>Booking a Ride</h3>
         <p>Need to get somewhere fast? Book a bike, car, or SUV and we'll match you with a driver in your area — no waiting, no haggling.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">📦</div>
         <h3>Waybilling</h3>
         <p>Send a parcel or package to any state in Nigeria with a proper waybill. Tracked, insured, and delivered without the stress.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">🔄</div>
         <h3>Transferring of Goods</h3>
         <p>Moving goods from one place to another? Choose your truck size and destination, and we'll handle the rest.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">🚚</div>
         <h3>Interstate Haulage</h3>
         <p>From Lagos to Kano, Abuja to Port Harcourt — our trucks move your cargo safely across every state in the country.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">✏️</div>
         <h3>Custom Requests</h3>
         <p>Something that doesn't fit into the usual boxes? Type your own request and we'll make it happen.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card reveal">
         <div class="feature-icon">💰</div>
         <h3>Transparent Pricing</h3>
         <p>See exactly what you pay before you commit. Vehicle fee + state fee = total. That's it.</p>
@@ -636,35 +1163,422 @@
     </div>
   </section>
 
-  <!-- ---------- VEHICLES STRIP ---------- -->
-  <section class="vehicles-strip">
-    <h3>Vehicles for every job.</h3>
-    <p>Whatever you need to move, whatever the distance — we have the right ride for it.</p>
+  <!-- ---------- VEHICLES SHOWCASE ---------- -->
+  <section class="vehicles-strip" id="vehicles">
+    <div class="vehicles-inner">
+      <div class="reveal">
+        <span class="section-label" style="color:#7dc9f0; border-left-color:#7dc9f0;">Our Fleet</span>
+        <h3>Vehicles for every job.</h3>
+        <p>Click any vehicle to see what it's best for. Whatever you need to move, whatever the distance — we have the right ride for it.</p>
+      </div>
 
-    <div class="vehicle-pills">
-      <div class="vehicle-pill">🏍️ Bike / Motorcycle</div>
-      <div class="vehicle-pill">🚗 Car (Sedan)</div>
-      <div class="vehicle-pill">🚙 SUV</div>
-      <div class="vehicle-pill">🚐 Van</div>
-      <div class="vehicle-pill">🚚 Small Truck</div>
-      <div class="vehicle-pill">🚛 Large Truck</div>
-      <div class="vehicle-pill">🚛 Trailer / Container</div>
+      <div class="vehicle-grid reveal">
+        <div class="vehicle-card active" data-v="bike">
+          <span class="v-emoji">🏍️</span>
+          <div class="v-name">Bike</div>
+          <div class="v-price">From ₦5,000</div>
+        </div>
+        <div class="vehicle-card" data-v="car">
+          <span class="v-emoji">🚗</span>
+          <div class="v-name">Car (Sedan)</div>
+          <div class="v-price">From ₦10,000</div>
+        </div>
+        <div class="vehicle-card" data-v="suv">
+          <span class="v-emoji">🚙</span>
+          <div class="v-name">SUV</div>
+          <div class="v-price">From ₦15,000</div>
+        </div>
+        <div class="vehicle-card" data-v="van">
+          <span class="v-emoji">🚐</span>
+          <div class="v-name">Van</div>
+          <div class="v-price">From ₦18,000</div>
+        </div>
+        <div class="vehicle-card" data-v="truck-small">
+          <span class="v-emoji">🚚</span>
+          <div class="v-name">Small Truck</div>
+          <div class="v-price">From ₦25,000</div>
+        </div>
+        <div class="vehicle-card" data-v="truck-large">
+          <span class="v-emoji">🚛</span>
+          <div class="v-name">Large Truck</div>
+          <div class="v-price">From ₦40,000</div>
+        </div>
+        <div class="vehicle-card" data-v="trailer">
+          <span class="v-emoji">🚛</span>
+          <div class="v-name">Trailer</div>
+          <div class="v-price">From ₦60,000</div>
+        </div>
+      </div>
+
+      <div class="vehicle-info-panel reveal" id="vehicleInfo">
+        <div class="info-title">🏍️ Bike / Motorcycle</div>
+        <div class="info-desc">Perfect for quick deliveries, single passengers, and beating traffic in the city. Best for short distances and lightweight loads.</div>
+        <div class="info-tags">
+          <span class="info-tag">Fast</span>
+          <span class="info-tag">Affordable</span>
+          <span class="info-tag">City-Friendly</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- STATS ---------- -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-box reveal">
+        <span class="num" data-count="5000" data-suffix="+">0</span>
+        <div class="lbl">Happy Customers</div>
+      </div>
+      <div class="stat-box reveal">
+        <span class="num" data-count="36">0</span>
+        <div class="lbl">States Covered</div>
+      </div>
+      <div class="stat-box reveal">
+        <span class="num" data-count="99" data-suffix="%">0</span>
+        <div class="lbl">On-Time Delivery</div>
+      </div>
+      <div class="stat-box reveal">
+        <span class="num" data-count="24" data-suffix="/7">0</span>
+        <div class="lbl">Support</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- TESTIMONIALS ---------- -->
+  <section class="section" id="reviews">
+    <div class="center reveal">
+      <span class="section-label">What clients say</span>
+      <h2 class="section-title">Trusted by thousands across Nigeria.</h2>
+      <p class="section-desc">From business owners to everyday commuters — here's what people say about Dominion Transport.</p>
+    </div>
+
+    <div class="testimonials reveal">
+      <div class="testimonial-slide active">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">Dominion moved my entire shop inventory from Lagos to Abuja in under 24 hours. Punctual, careful, and the price was exactly what they quoted. I'm never using anyone else.</div>
+        <div class="author">
+          <div class="avatar">AO</div>
+          <div class="who">
+            <div class="name">Adebayo Okafor</div>
+            <div class="role">Small Business Owner · Abuja</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-slide">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">I needed a same-day waybill to Port Harcourt and Dominion delivered in 6 hours. Their tracking updates kept me calm the whole way. Absolutely brilliant service.</div>
+        <div class="author">
+          <div class="avatar">CI</div>
+          <div class="who">
+            <div class="name">Chidinma Ibe</div>
+            <div class="role">Freelance Designer · Lagos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-slide">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">The pricing is transparent — no hidden fees, no surprises. I booked a truck in 2 minutes, paid, uploaded my receipt, and the driver arrived right on time. This is what modern transport should feel like.</div>
+        <div class="author">
+          <div class="avatar">MB</div>
+          <div class="who">
+            <div class="name">Muhammad Bello</div>
+            <div class="role">Logistics Coordinator · Kano</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-dots" id="testimonialDots">
+      <button class="dot active" data-slide="0" aria-label="Slide 1"></button>
+      <button class="dot" data-slide="1" aria-label="Slide 2"></button>
+      <button class="dot" data-slide="2" aria-label="Slide 3"></button>
     </div>
   </section>
 
   <!-- ---------- CTA ---------- -->
-  <section class="cta-section" id="book">
-    <h2>Ready to book with Dominion transport sulution?</h2>
-    <p>Sign up for free, and book your first ride, waybill, or goods transfer in under a minute.</p>
-    <div class="cta-buttons">
-     <a href="{{ url_for('create') }}" class="btn btn-signup">Sign Up Free</a>
+  <section class="section" style="padding-top: 0;">
+    <div class="cta-section reveal">
+      <div class="cta-content">
+        <h2>Ready to book with <span>Dominion Transport Solutions?</span></h2>
+        <p>Sign up for free and book your first ride, waybill, or goods transfer in under a minute.</p>
+        <a href="{{ url_for('create') }}" class="cta-btn-large">
+          Sign Up Free <span class="arrow-r">→</span>
+        </a>
+      </div>
     </div>
   </section>
 
   <!-- ---------- FOOTER ---------- -->
   <footer class="footer">
-    &copy; 2025 <strong>Dominion Transport Solutions</strong>. All rights reserved. · Book rides, waybills & goods transfers nationwide.
+    <div class="footer-inner">
+      <div class="footer-col footer-brand">
+        <a href="#" class="nav-brand">
+          Dominion <span class="accent">Transport</span>
+        </a>
+        <p>Book rides, waybills, and goods transfers across every state in Nigeria. Fast, transparent, and reliable.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#vehicles">Our fleet</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Account</h5>
+        <ul>
+          <li><a href="{{ url_for('login') }}">Sign in</a></li>
+          <li><a href="{{ url_for('create') }}">Create account</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Stay in touch</h5>
+        <p style="font-size:0.85rem; color:#5e7a8c; margin-bottom:0.75rem;">Get updates about new routes and offers.</p>
+        <form class="newsletter-form" onsubmit="event.preventDefault(); this.reset(); showThanks(this);">
+          <input type="email" placeholder="you@example.com" required>
+          <button type="submit">Join</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      &copy; 2025 <strong>Dominion Transport Solutions</strong>. All rights reserved.
+    </div>
   </footer>
 
+  <!-- ---------- BACK TO TOP ---------- -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+  <script>
+    /* =================== SCROLL PROGRESS =================== */
+    const scrollProgress = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      scrollProgress.style.width = scrolled + '%';
+    });
+
+    /* =================== NAVBAR SCROLL =================== */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    /* =================== MOBILE MENU =================== */
+    const navToggle = document.getElementById('navToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    navToggle.addEventListener('click', () => {
+      navToggle.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+    });
+    function closeMobile() {
+      navToggle.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    }
+
+    /* =================== PARTICLES =================== */
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (8 + Math.random() * 12) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      p.style.opacity = 0.3 + Math.random() * 0.5;
+      particlesContainer.appendChild(p);
+    }
+
+    /* =================== SCROLL REVEAL =================== */
+    const reveals = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => revealObserver.observe(el));
+
+    /* =================== COUNT UP =================== */
+    const counters = document.querySelectorAll('[data-count]');
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = Number(el.dataset.count);
+          const suffix = el.dataset.suffix || '';
+          const duration = 1800;
+          const start = performance.now();
+          const animate = (now) => {
+            const t = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const value = Math.floor(target * eased);
+            el.textContent = value.toLocaleString() + suffix;
+            if (t < 1) requestAnimationFrame(animate);
+            else el.textContent = target.toLocaleString() + suffix;
+          };
+          requestAnimationFrame(animate);
+          countObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(el => countObserver.observe(el));
+
+    /* =================== VEHICLE SHOWCASE =================== */
+    const vehicleData = {
+      'bike': {
+        emoji: '🏍️',
+        title: 'Bike / Motorcycle',
+        desc: 'Perfect for quick deliveries, single passengers, and beating traffic in the city. Best for short distances and lightweight loads.',
+        tags: ['Fast', 'Affordable', 'City-Friendly']
+      },
+      'car': {
+        emoji: '🚗',
+        title: 'Car (Sedan)',
+        desc: 'Comfortable rides for 1–4 passengers. Ideal for airport runs, business travel, or moving small items around town.',
+        tags: ['Comfort', '4 Passengers', 'Urban']
+      },
+      'suv': {
+        emoji: '🚙',
+        title: 'SUV',
+        desc: 'Extra space and legroom for 1–5 passengers. Great for longer trips, family travel, or when you want extra comfort.',
+        tags: ['Spacious', '5 Passengers', 'Comfort']
+      },
+      'van': {
+        emoji: '🚐',
+        title: 'Van',
+        desc: 'Perfect for group travel or moving medium-sized cargo. Fits 6–8 passengers or plenty of equipment.',
+        tags: ['8 Passengers', 'Cargo', 'Group Travel']
+      },
+      'truck-small': {
+        emoji: '🚚',
+        title: 'Small Truck',
+        desc: 'For moving household items, small shop inventories, or medium-sized loads. Best for short-to-medium distances.',
+        tags: ['3.5 Tons', 'Household', 'Local']
+      },
+      'truck-large': {
+        emoji: '🚛',
+        title: 'Large Truck',
+        desc: 'For serious cargo — building materials, bulk goods, and large shipments. Handles long distances with ease.',
+        tags: ['10 Tons', 'Bulk Cargo', 'Long Haul']
+      },
+      'trailer': {
+        emoji: '🚛',
+        title: 'Trailer / Container',
+        desc: 'The biggest option — for full container loads, industrial shipments, and heavy haulage. Interstate and nationwide.',
+        tags: ['40 Ft', 'Industrial', 'Nationwide']
+      }
+    };
+
+    document.querySelectorAll('.vehicle-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
+        const data = vehicleData[card.dataset.v];
+        const panel = document.getElementById('vehicleInfo');
+        panel.style.opacity = '0';
+        panel.style.transform = 'translateY(10px)';
+
+        setTimeout(() => {
+          panel.innerHTML = `
+            <div class="info-title">${data.emoji} ${data.title}</div>
+            <div class="info-desc">${data.desc}</div>
+            <div class="info-tags">
+              ${data.tags.map(t => `<span class="info-tag">${t}</span>`).join('')}
+            </div>
+          `;
+          panel.style.opacity = '1';
+          panel.style.transform = 'translateY(0)';
+        }, 180);
+      });
+    });
+
+    /* =================== TESTIMONIALS =================== */
+    const slides = document.querySelectorAll('.testimonial-slide');
+    const dots = document.querySelectorAll('.testimonial-dots .dot');
+    let currentSlide = 0;
+    let slideInterval;
+
+    function goToSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      dots.forEach(d => d.classList.remove('active'));
+      slides[i].classList.add('active');
+      dots[i].classList.add('active');
+      currentSlide = i;
+    }
+    function nextSlide() {
+      goToSlide((currentSlide + 1) % slides.length);
+    }
+    function startAutoPlay() {
+      slideInterval = setInterval(nextSlide, 6000);
+    }
+    function stopAutoPlay() {
+      clearInterval(slideInterval);
+    }
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        stopAutoPlay();
+        goToSlide(Number(dot.dataset.slide));
+        startAutoPlay();
+      });
+    });
+    startAutoPlay();
+
+    /* =================== BACK TO TOP =================== */
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      backToTop.classList.toggle('show', window.scrollY > 500);
+    });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    /* =================== NEWSLETTER THANKS =================== */
+    function showThanks(form) {
+      const btn = form.querySelector('button');
+      const original = btn.textContent;
+      btn.textContent = '✓ Joined!';
+      btn.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.background = '';
+      }, 2000);
+    }
+
+    /* =================== MAGNETIC BUTTONS (subtle) =================== */
+    document.querySelectorAll('.hero-btn, .cta-btn-large, .nav-cta').forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.08}px, ${y * 0.08}px) translateY(-2px)`;
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+      });
+    });
+
+    /* =================== SMOOTH SCROLL FOR NAV LINKS =================== */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
 </body>
 </html>
