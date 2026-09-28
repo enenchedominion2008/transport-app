@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dominion Transport Solutions · Book Rides, Waybills & Deliveries</title>
   <style>
@@ -16,6 +17,7 @@
       line-height: 1.6;
     }
     a { -webkit-tap-highlight-color: transparent; }
+    img { display: block; max-width: 100%; }
 
     /* ---------- SCROLL PROGRESS BAR ---------- */
     .scroll-progress {
@@ -27,7 +29,9 @@
       box-shadow: 0 0 12px rgba(45, 156, 219, 0.6);
     }
 
-    /* ---------- NAVBAR ---------- */
+    /* ============================================================
+       NAVBAR
+       ============================================================ */
     .navbar {
       position: fixed; top: 0; left: 0; width: 100%;
       padding: 1rem 2.5rem;
@@ -40,18 +44,18 @@
       transition: all 0.3s ease;
     }
     .navbar.scrolled {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       box-shadow: 0 8px 32px rgba(10, 42, 59, 0.08);
       padding: 0.7rem 2.5rem;
     }
-    .nav-brand {
+    .navbar .nav-brand {
       display: flex; align-items: baseline; gap: 0.35rem;
       font-size: 1.35rem; font-weight: 700;
       letter-spacing: -0.02em;
       color: #0a2a3b; text-decoration: none;
     }
-    .nav-brand span.accent { font-weight: 300; color: #2d9cdb; }
-    .nav-brand .nav-dot {
+    .navbar .nav-brand span.accent { font-weight: 300; color: #2d9cdb; }
+    .navbar .nav-brand .nav-dot {
       width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
       margin-left: 0.4rem;
       box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
@@ -94,7 +98,6 @@
       box-shadow: 0 12px 26px -8px rgba(45, 156, 219, 0.7);
     }
 
-    /* mobile menu toggle */
     .nav-toggle {
       display: none; background: none; border: none;
       width: 30px; height: 30px; cursor: pointer;
@@ -129,126 +132,103 @@
     }
     .mobile-menu a:hover { background: #f0f7fc; color: #0a2a3b; }
 
-    /* ---------- HERO ---------- */
-    .hero {
-      height: 100vh; min-height: 640px;
-      width: 100%; position: relative;
-      display: flex; align-items: center; justify-content: center;
+    /* ============================================================
+       PREMIUM SCROLL HERO
+       ============================================================ */
+    .hero-story {
+      height: 500vh;
+      position: relative;
+    }
+
+    .hero-sticky {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
       overflow: hidden;
-      background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
-    }
-    .hero img {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; object-fit: cover;
-      z-index: 1;
-      animation: kenBurns 20s ease-in-out infinite alternate;
-    }
-    @keyframes kenBurns {
-      from { transform: scale(1); }
-      to   { transform: scale(1.12); }
-    }
-    .hero::after {
-      content: ""; position: absolute; inset: 0;
-      background: linear-gradient(180deg,
-        rgba(10, 28, 43, 0.55) 0%,
-        rgba(10, 28, 43, 0.72) 55%,
-        rgba(10, 28, 43, 0.92) 100%);
-      z-index: 2;
+      background: #050505;
     }
 
-    /* floating gradient orbs */
-    .hero .orb {
-      position: absolute; border-radius: 50%;
-      pointer-events: none;
-      filter: blur(60px);
-      z-index: 2;
-      opacity: 0.6;
-    }
-    .hero .orb.o1 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.6), transparent 70%);
-      top: -150px; left: -100px;
-      animation: float1 14s ease-in-out infinite;
-    }
-    .hero .orb.o2 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(125, 201, 240, 0.45), transparent 70%);
-      bottom: -120px; right: -80px;
-      animation: float2 18s ease-in-out infinite;
-    }
-    @keyframes float1 {
-      0%, 100% { transform: translate(0, 0); }
-      50%      { transform: translate(60px, 40px); }
-    }
-    @keyframes float2 {
-      0%, 100% { transform: translate(0, 0); }
-      50%      { transform: translate(-50px, -30px); }
-    }
-
-    /* particles */
-    .particles {
-      position: absolute; inset: 0; z-index: 2;
-      pointer-events: none;
-    }
-    .particle {
+    .scene {
       position: absolute;
-      width: 3px; height: 3px;
-      background: rgba(125, 201, 240, 0.7);
-      border-radius: 50%;
-      animation: rise linear infinite;
-    }
-    @keyframes rise {
-      from { transform: translateY(100vh) scale(0.5); opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      to   { transform: translateY(-20px) scale(1); opacity: 0; }
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      will-change: transform, opacity, filter, clip-path;
     }
 
+    .scene::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        rgba(10, 28, 43, 0.92) 0%,
+        rgba(10, 28, 43, 0.55) 45%,
+        rgba(10, 28, 43, 0.75) 100%
+      );
+    }
+
+    /* --- Scene Images (Unsplash) --- */
+    .scene:nth-child(1) {
+      background-image: url("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2400&q=90");
+    }
+    .scene:nth-child(2) {
+      background-image: url("https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=2400&q=90");
+    }
+    .scene:nth-child(3) {
+      background-image: url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=2400&q=90");
+    }
+    .scene:nth-child(4) {
+      background-image: url("https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=2400&q=90");
+    }
+    .scene:nth-child(5) {
+      background-image: url("https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=2400&q=90");
+    }
+
+    /* --- Content slides --- */
     .hero-content {
-      position: relative; z-index: 3;
-      text-align: center; color: #ffffff;
-      padding: 2rem; max-width: 950px;
+      position: absolute;
+      left: 9vw;
+      top: 50%;
+      z-index: 20;
+      max-width: 620px;
+      color: #fff;
+      opacity: 0;
+      transform: translateY(-50%) translateX(-100px);
     }
 
-    .hero-tag {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      font-size: 0.75rem; font-weight: 600;
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: #7dc9f0;
-      background: rgba(45, 156, 219, 0.12);
-      border: 1px solid rgba(125, 201, 240, 0.35);
-      padding: 0.5rem 1.2rem;
-      border-radius: 60px;
-      margin-bottom: 1.75rem;
-      backdrop-filter: blur(10px);
-      animation: fadeUp 1s ease 0.2s both;
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+      color: rgba(125, 201, 240, 0.95);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
     }
-    .hero-tag .pulse {
-      width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
+    .hero-eyebrow .pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
       animation: navPulse 2s infinite;
     }
 
-    .hero-content h1 {
-      font-size: clamp(2.2rem, 6.5vw, 4.5rem);
+    .hero-title {
+      font-size: clamp(2.8rem, 7.5vw, 6rem);
+      line-height: 0.92;
+      letter-spacing: -0.045em;
       font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.05;
-      margin-bottom: 1.4rem;
-      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 1.5rem;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.55);
     }
-    .hero-content h1 .line {
+    .hero-title span {
       display: block;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: lineUp 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-    }
-    .hero-content h1 .line:nth-child(1) { animation-delay: 0.4s; }
-    .hero-content h1 .line:nth-child(2) { animation-delay: 0.6s; }
-    @keyframes lineUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .hero-content h1 span {
       font-weight: 300;
       background: linear-gradient(135deg, #7dc9f0 0%, #2d9cdb 100%);
       -webkit-background-clip: text;
@@ -256,98 +236,97 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .hero-content p {
-      font-size: clamp(1rem, 1.8vw, 1.15rem);
-      color: rgba(255, 255, 255, 0.9);
-      max-width: 660px; margin: 0 auto 2.25rem;
+    .hero-desc {
+      max-width: 480px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
       text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-      animation: fadeUp 1s ease 0.8s both;
-    }
-
-    .hero-actions {
-      display: flex; gap: 1rem; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 3rem;
-      animation: fadeUp 1s ease 1s both;
     }
 
     .hero-btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 1rem 2rem;
-      font-size: 0.95rem; font-weight: 600;
-      border-radius: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.95rem 1.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border-radius: 60px;
+      color: #fff;
       text-decoration: none;
-      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
-      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
       cursor: pointer;
-      border: none;
+    }
+    .hero-btn:hover {
+      background: #fff;
+      color: #0a2a3b;
+      border-color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -8px rgba(255, 255, 255, 0.35);
     }
     .hero-btn.primary {
       background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%);
-      color: #fff;
+      border-color: transparent;
       box-shadow: 0 14px 32px -10px rgba(45, 156, 219, 0.75);
     }
     .hero-btn.primary:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 20px 40px -12px rgba(45, 156, 219, 0.85);
-    }
-    .hero-btn.ghost {
-      background: rgba(255, 255, 255, 0.08);
+      background: linear-gradient(135deg, #1d7bb0 0%, #155f8a 100%);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(10px);
-    }
-    .hero-btn.ghost:hover {
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.4);
-      transform: translateY(-3px);
+      box-shadow: 0 20px 40px -12px rgba(45, 156, 219, 0.9);
     }
 
-    /* live ticker */
-    .ticker {
-      display: flex; gap: 2.5rem; justify-content: center;
-      flex-wrap: wrap;
-      padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      max-width: 700px; margin: 0 auto;
-      animation: fadeUp 1s ease 1.2s both;
+    /* --- Side dots --- */
+    .side-nav {
+      position: absolute;
+      right: 5vw;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
-    .ticker .item {
-      text-align: center;
+    .side-nav .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.4s ease;
+      cursor: pointer;
     }
-    .ticker .item .num {
-      font-size: 1.4rem; font-weight: 700; color: #7dc9f0;
-      letter-spacing: -0.02em;
-      display: block;
-      line-height: 1.1;
-    }
-    .ticker .item .lbl {
-      font-size: 0.68rem; font-weight: 600;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.6);
-      margin-top: 0.3rem;
-    }
-    .ticker .divider {
-      width: 1px; background: rgba(255, 255, 255, 0.15);
-      align-self: stretch;
+    .side-nav .dot.active {
+      background: #fff;
+      transform: scale(1.8);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
     }
 
-    /* scroll hint */
-    .scroll-hint {
-      position: absolute; bottom: 2rem; left: 50%;
+    /* --- Scroll hint --- */
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
       transform: translateX(-50%);
-      z-index: 3;
+      z-index: 30;
       color: rgba(255, 255, 255, 0.75);
-      font-size: 0.68rem; letter-spacing: 0.2em;
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
       animation: bounce 2.2s infinite;
+      pointer-events: none;
     }
-    .scroll-hint .arrow {
-      width: 18px; height: 18px;
+    .hero-scroll-hint .arrow {
+      width: 18px;
+      height: 18px;
       border-right: 2px solid rgba(255, 255, 255, 0.85);
       border-bottom: 2px solid rgba(255, 255, 255, 0.85);
       transform: rotate(45deg);
@@ -358,12 +337,9 @@
       60% { transform: translateX(-50%) translateY(-5px); }
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ---------- SECTIONS ---------- */
+    /* ============================================================
+       SECTIONS (unchanged from your original design)
+       ============================================================ */
     .section {
       max-width: 1200px;
       margin: 0 auto;
@@ -400,7 +376,6 @@
 
     .center { text-align: center; }
 
-    /* scroll reveal */
     .reveal {
       opacity: 0;
       transform: translateY(40px);
@@ -421,31 +396,17 @@
     .step {
       background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       padding: 2rem 1.75rem;
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.8);
       box-shadow: 0 20px 40px -20px rgba(10, 42, 59, 0.15);
-      position: relative;
-      overflow: hidden;
       transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1),
                   box-shadow 0.4s ease;
-      transform-style: preserve-3d;
-      perspective: 800px;
-    }
-    .step::before {
-      content: "";
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, #2d9cdb 0%, #7dc9f0 100%);
-      opacity: 0;
-      transition: opacity 0.3s;
     }
     .step:hover {
       transform: translateY(-8px);
       box-shadow: 0 30px 60px -22px rgba(10, 42, 59, 0.28);
     }
-    .step:hover::before { opacity: 1; }
-
     .step-num {
       display: inline-flex; align-items: center; justify-content: center;
       width: 44px; height: 44px; border-radius: 14px;
@@ -469,7 +430,6 @@
     .feature-card {
       background: rgba(255, 255, 255, 0.75);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       padding: 2.2rem 1.9rem;
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.85);
@@ -478,24 +438,11 @@
       position: relative;
       overflow: hidden;
     }
-    .feature-card::after {
-      content: "";
-      position: absolute;
-      top: -50%; right: -30%;
-      width: 220px; height: 220px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.18) 0%, transparent 70%);
-      border-radius: 50%;
-      opacity: 0;
-      transition: opacity 0.4s;
-      pointer-events: none;
-    }
     .feature-card:hover {
       transform: translateY(-8px);
       box-shadow: 0 32px 60px -22px rgba(10, 42, 59, 0.28);
       border-color: rgba(125, 201, 240, 0.6);
     }
-    .feature-card:hover::after { opacity: 1; }
-
     .feature-icon {
       width: 56px; height: 56px;
       border-radius: 18px;
@@ -504,7 +451,6 @@
       font-size: 1.6rem; color: #fff;
       margin-bottom: 1.25rem;
       box-shadow: 0 12px 24px -8px rgba(45, 156, 219, 0.55);
-      position: relative; z-index: 2;
       transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
     .feature-card:hover .feature-icon {
@@ -513,37 +459,18 @@
     .feature-card h3 {
       font-size: 1.15rem; font-weight: 700;
       margin-bottom: 0.6rem; color: #0a2a3b;
-      position: relative; z-index: 2;
     }
     .feature-card p {
       font-size: 0.92rem; color: #5e7a8c; line-height: 1.65;
-      position: relative; z-index: 2;
     }
 
-    /* ---------- VEHICLE SHOWCASE ---------- */
+    /* ---------- VEHICLES STRIP ---------- */
     .vehicles-strip {
       background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
       padding: 5rem 2rem;
       position: relative;
       overflow: hidden;
     }
-    .vehicles-strip::before {
-      content: "";
-      position: absolute; top: -30%; left: -10%;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.3) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .vehicles-strip::after {
-      content: "";
-      position: absolute; bottom: -40%; right: -10%;
-      width: 450px; height: 450px;
-      background: radial-gradient(circle, rgba(125, 201, 240, 0.22) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
     .vehicles-inner {
       position: relative; z-index: 2;
       max-width: 1100px; margin: 0 auto; text-align: center;
@@ -574,8 +501,6 @@
       transition: all 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
       text-align: center;
       backdrop-filter: blur(12px);
-      position: relative;
-      overflow: hidden;
     }
     .vehicle-card:hover {
       transform: translateY(-6px);
@@ -592,9 +517,7 @@
       margin-bottom: 0.6rem;
       transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
-    .vehicle-card:hover .v-emoji {
-      transform: scale(1.15) rotate(-6deg);
-    }
+    .vehicle-card:hover .v-emoji { transform: scale(1.15) rotate(-6deg); }
     .vehicle-card .v-name {
       font-size: 0.92rem; font-weight: 700;
       color: #fff; margin-bottom: 0.25rem;
@@ -621,7 +544,6 @@
     .vehicle-info-panel .info-title {
       font-size: 1.35rem; font-weight: 700;
       color: #fff; margin-bottom: 0.5rem;
-      letter-spacing: -0.02em;
     }
     .vehicle-info-panel .info-desc {
       font-size: 0.95rem;
@@ -645,15 +567,6 @@
     .stats-section {
       background: #f7fafd;
       padding: 5rem 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .stats-section::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 50%; transform: translateX(-50%);
-      width: 80%; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(45, 156, 219, 0.4), transparent);
     }
     .stats-grid {
       max-width: 1000px; margin: 0 auto;
@@ -704,7 +617,6 @@
     .testimonial-slide {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       padding: 2.5rem 2rem;
       border-radius: 28px;
       border: 1px solid rgba(255, 255, 255, 0.9);
@@ -747,9 +659,7 @@
       color: #fff; font-weight: 700; font-size: 0.95rem;
       display: flex; align-items: center; justify-content: center;
     }
-    .testimonial-slide .author .who {
-      text-align: left;
-    }
+    .testimonial-slide .author .who { text-align: left; }
     .testimonial-slide .author .who .name {
       font-weight: 700; color: #0a2a3b; font-size: 0.92rem;
     }
@@ -787,7 +697,6 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 40px 80px -28px rgba(10, 42, 59, 0.55);
-      isolation: isolate;
     }
     .cta-section::before {
       content: "";
@@ -797,24 +706,8 @@
       background: radial-gradient(circle, rgba(45, 156, 219, 0.4) 0%, transparent 70%);
       border-radius: 50%;
       pointer-events: none;
-      animation: pulseGlow 6s ease-in-out infinite;
     }
-    @keyframes pulseGlow {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50%      { transform: scale(1.15); opacity: 1; }
-    }
-    .cta-section::after {
-      content: "";
-      position: absolute;
-      bottom: -50%; left: -10%;
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(125, 201, 240, 0.28) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .cta-content {
-      position: relative; z-index: 2;
-    }
+    .cta-content { position: relative; z-index: 2; }
     .cta-section h2 {
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       font-weight: 700; color: #fff;
@@ -843,9 +736,6 @@
       text-decoration: none;
       transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
       box-shadow: 0 20px 40px -12px rgba(45, 156, 219, 0.75);
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
     }
     .cta-btn-large:hover {
       transform: translateY(-4px) scale(1.02);
@@ -855,9 +745,7 @@
       transition: transform 0.3s;
       display: inline-block;
     }
-    .cta-btn-large:hover .arrow-r {
-      transform: translateX(5px);
-    }
+    .cta-btn-large:hover .arrow-r { transform: translateX(5px); }
 
     /* ---------- FOOTER ---------- */
     .footer {
@@ -882,9 +770,7 @@
       margin-bottom: 1rem;
     }
     .footer-col ul { list-style: none; }
-    .footer-col ul li {
-      margin-bottom: 0.55rem;
-    }
+    .footer-col ul li { margin-bottom: 0.55rem; }
     .footer-col ul li a {
       font-size: 0.88rem; color: #5e7a8c;
       text-decoration: none;
@@ -894,7 +780,15 @@
 
     .footer-brand .nav-brand {
       margin-bottom: 0.9rem;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #0a2a3b;
+      text-decoration: none;
     }
+    .footer-brand .nav-brand span.accent { font-weight: 300; color: #2d9cdb; }
     .footer-brand p {
       font-size: 0.88rem;
       color: #5e7a8c;
@@ -916,7 +810,6 @@
       outline: none;
       font-family: inherit;
       color: #0a2a3b;
-      transition: border-color 0.2s;
     }
     .newsletter-form input:focus {
       border-color: #2d9cdb;
@@ -970,10 +863,7 @@
       pointer-events: auto;
       transform: translateY(0);
     }
-    .back-to-top:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 18px 36px -8px rgba(45, 156, 219, 0.8);
-    }
+    .back-to-top:hover { transform: translateY(-3px); }
 
     /* ============================================================
        PAGE TRANSITION OVERLAY
@@ -1001,9 +891,7 @@
       display: flex; align-items: baseline; gap: 0.4rem;
       animation: ptFadeUp 0.7s ease both;
     }
-    #pageTransition .pt-logo span {
-      font-weight: 300; color: #7dc9f0;
-    }
+    #pageTransition .pt-logo span { font-weight: 300; color: #7dc9f0; }
     #pageTransition .pt-bar {
       width: 180px; height: 3px;
       background: rgba(255, 255, 255, 0.08);
@@ -1026,12 +914,11 @@
       100% { transform: translateX(320%); }
     }
 
-    /* ---------- RESPONSIVE ---------- */
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
     @media (max-width: 900px) {
-      .footer-inner {
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem 1.5rem;
-      }
+      .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem 1.5rem; }
     }
     @media (max-width: 768px) {
       .navbar { padding: 0.85rem 1.25rem; }
@@ -1039,21 +926,25 @@
       .nav-links, .nav-cta { display: none; }
       .nav-toggle { display: flex; }
       .section { padding: 4rem 1.25rem; }
-      .hero-content h1 { font-size: 2.2rem; }
+      .hero-content { left: 1.5rem; right: 1.5rem; max-width: none; }
+      .hero-title { letter-spacing: -0.03em; }
+      .side-nav { right: 1rem; gap: 1rem; }
       .cta-section { padding: 3.5rem 1.5rem; border-radius: 28px; margin: 4rem 1.25rem 0; }
-      .ticker { gap: 1.25rem; padding: 0.85rem 1rem; }
-      .ticker .item .num { font-size: 1.15rem; }
       .testimonial-slide { padding: 2rem 1.4rem; }
       .footer-inner { grid-template-columns: 1fr; }
       .back-to-top { bottom: 1.25rem; right: 1.25rem; }
     }
     @media (max-width: 480px) {
-      .hero-content p { font-size: 0.95rem; }
-      .hero-actions { flex-direction: column; }
-      .hero-btn { width: 100%; justify-content: center; }
+      .hero-desc { font-size: 0.92rem; }
+      .hero-btn { padding: 0.85rem 1.4rem; font-size: 0.78rem; }
       .feature-card { padding: 1.75rem 1.4rem; }
       .step { padding: 1.75rem 1.4rem; }
       .vehicle-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Reduced motion — accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .scene, .hero-content, .hero-scroll-hint { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
@@ -1075,10 +966,10 @@
       <span class="nav-dot"></span>
     </a>
     <ul class="nav-links">
-      <li><a href="#how">How it works</a></li>
       <li><a href="#services">Services</a></li>
       <li><a href="#vehicles">Vehicles</a></li>
       <li><a href="#reviews">Reviews</a></li>
+      <li><a href="#book">Book now</a></li>
     </ul>
     <a href="{{ url_for('login') }}" class="nav-cta">Sign in</a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
@@ -1088,61 +979,81 @@
 
   <!-- MOBILE MENU -->
   <div class="mobile-menu" id="mobileMenu">
-    <a href="#how" onclick="closeMobile()">How it works</a>
     <a href="#services" onclick="closeMobile()">Services</a>
     <a href="#vehicles" onclick="closeMobile()">Vehicles</a>
     <a href="#reviews" onclick="closeMobile()">Reviews</a>
+    <a href="#book" onclick="closeMobile()">Book now</a>
     <a href="{{ url_for('login') }}" style="background: linear-gradient(135deg, #2d9cdb 0%, #1d7bb0 100%); color: #fff; text-align: center; margin-top: 0.5rem;">Sign in</a>
   </div>
 
-  <!-- ---------- HERO ---------- -->
-  <section class="hero">
-    <img src="{{ url_for('static', filename='ChatGPTImage.png') }}" alt="Dominion Transport">
-    <div class="orb o1"></div>
-    <div class="orb o2"></div>
-    <div class="particles" id="particles"></div>
+  <!-- ============================================================
+       PREMIUM SCROLL HERO
+       ============================================================ -->
+  <section class="hero-story" id="heroStory">
+    <div class="hero-sticky">
 
-    <div class="hero-content">
-      <div class="hero-tag">
-        <span class="pulse"></span>
-        Book a vehicle in seconds
-      </div>
-      <h1>
-        <span class="line">Any Vehicle.</span>
-        <span class="line">Any Task. <span>Any State.</span></span>
-      </h1>
-      <p>From a quick ride across town to moving goods interstate — Dominion Transport Solutions gets your booking done fast and transparently. Pick your vehicle, choose your task, see the price, pay, and go.</p>
+      <!-- SCENE BACKGROUNDS -->
+      <div class="scene"></div>
+      <div class="scene"></div>
+      <div class="scene"></div>
+      <div class="scene"></div>
+      <div class="scene"></div>
 
-      <div class="hero-actions">
-        <a href="{{ url_for('create') }}" class="hero-btn primary">
-          Get Started Free <span>→</span>
-        </a>
-        <a href="#how" class="hero-btn ghost">
-          How it works
-        </a>
+      <!-- SCENE 1 — BOOK A RIDE -->
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse"></span>01 / Book a Ride</div>
+        <h1 class="hero-title">Any Ride.<span>Anywhere.</span></h1>
+        <p class="hero-desc">Book a bike, car, or SUV in seconds. We match you with a driver in your area — no waiting, no haggling.</p>
+        <a href="{{ url_for('create') }}" class="hero-btn primary">Book a Ride →</a>
       </div>
 
-      <div class="ticker">
-        <div class="item">
-          <span class="num" data-count="7">0</span>
-          <span class="lbl">Vehicles</span>
-        </div>
-        <div class="divider"></div>
-        <div class="item">
-          <span class="num" data-count="36">0</span>
-          <span class="lbl">States</span>
-        </div>
-        <div class="divider"></div>
-        <div class="item">
-          <span class="num" data-count="5000">0</span>
-          <span class="lbl">Bookings</span>
-        </div>
+      <!-- SCENE 2 — SEND A WAYBILL -->
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse"></span>02 / Send a Waybill</div>
+        <h1 class="hero-title">Send It.<span>Tracked.</span></h1>
+        <p class="hero-desc">Ship parcels to any of Nigeria's 36 states with a proper waybill. Tracked, insured, delivered without the stress.</p>
+        <a href="{{ url_for('create') }}" class="hero-btn primary">Send a Waybill →</a>
       </div>
-    </div>
 
-    <div class="scroll-hint">
-      <span>Scroll to explore</span>
-      <div class="arrow"></div>
+      <!-- SCENE 3 — MOVE GOODS -->
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse"></span>03 / Move Goods</div>
+        <h1 class="hero-title">Move It.<span>Safely.</span></h1>
+        <p class="hero-desc">From household items to full shop inventories. Choose your truck size and we handle the rest.</p>
+        <a href="{{ url_for('create') }}" class="hero-btn primary">Move Goods →</a>
+      </div>
+
+      <!-- SCENE 4 — INTERSTATE HAULAGE -->
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse"></span>04 / Interstate Haulage</div>
+        <h1 class="hero-title">Nationwide.<span>Reliable.</span></h1>
+        <p class="hero-desc">Lagos to Kano. Abuja to Port Harcourt. Our trucks move your cargo safely across every state in the country.</p>
+        <a href="{{ url_for('create') }}" class="hero-btn primary">Start Hauling →</a>
+      </div>
+
+      <!-- SCENE 5 — CTA -->
+      <div class="hero-content">
+        <div class="hero-eyebrow"><span class="pulse"></span>05 / Get Started</div>
+        <h1 class="hero-title">Ready To<span>Move?</span></h1>
+        <p class="hero-desc">Sign up free and book your first ride, waybill, or goods transfer in under a minute.</p>
+        <a href="{{ url_for('create') }}" class="hero-btn primary">Sign Up Free →</a>
+      </div>
+
+      <!-- SIDE DOTS -->
+      <div class="side-nav" id="sideNav">
+        <div class="dot active" data-index="0"></div>
+        <div class="dot" data-index="1"></div>
+        <div class="dot" data-index="2"></div>
+        <div class="dot" data-index="3"></div>
+        <div class="dot" data-index="4"></div>
+      </div>
+
+      <!-- SCROLL HINT -->
+      <div class="hero-scroll-hint" id="heroScrollHint">
+        <span>Scroll to explore</span>
+        <div class="arrow"></div>
+      </div>
+
     </div>
   </section>
 
@@ -1336,7 +1247,7 @@
 
       <div class="testimonial-slide">
         <div class="quote-mark">"</div>
-        <div class="quote-text">The pricing is transparent — no hidden fees, no surprises. I booked a truck in 2 minutes, paid, uploaded my receipt, and the driver arrived right on time. This is what modern transport should feel like.</div>
+        <div class="quote-text">The pricing is transparent — no hidden fees, no surprises. I booked a truck in 2 minutes, paid, uploaded my receipt, and the driver arrived right on time.</div>
         <div class="author">
           <div class="avatar">MB</div>
           <div class="who">
@@ -1355,7 +1266,7 @@
   </section>
 
   <!-- ---------- CTA ---------- -->
-  <section class="section" style="padding-top: 0;">
+  <section class="section" style="padding-top: 0;" id="book">
     <div class="cta-section reveal">
       <div class="cta-content">
         <h2>Ready to book with <span>Dominion Transport Solutions?</span></h2>
@@ -1371,9 +1282,7 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-col footer-brand">
-        <a href="#" class="nav-brand">
-          Dominion <span class="accent">Transport</span>
-        </a>
+        <a href="#" class="nav-brand">Dominion <span class="accent">Transport</span></a>
         <p>Book rides, waybills, and goods transfers across every state in Nigeria. Fast, transparent, and reliable.</p>
       </div>
 
@@ -1414,6 +1323,162 @@
   <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
 
   <script>
+    /* =================== PREMIUM SCROLL HERO =================== */
+    (function() {
+      const heroStory = document.getElementById('heroStory');
+      const scenes    = heroStory.querySelectorAll('.scene');
+      const contents  = heroStory.querySelectorAll('.hero-content');
+      const dots      = document.querySelectorAll('#sideNav .dot');
+      const scrollHint = document.getElementById('heroScrollHint');
+
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function animateHero() {
+        const rect = heroStory.getBoundingClientRect();
+        const storyHeight = heroStory.offsetHeight - window.innerHeight;
+
+        // how far we've scrolled into the hero section (clamped 0..1)
+        let progress = -rect.top / storyHeight;
+        progress = Math.max(0, Math.min(1, progress));
+
+        const total = scenes.length;
+        const position = progress * total;
+
+        let current = Math.floor(position);
+        if (current >= total) current = total - 1;
+
+        const local = position - current;
+
+        // Update scenes
+        scenes.forEach((scene, index) => {
+          let opacity = 0;
+          let transform = '';
+          let filter = '';
+
+          if (index === 0 && current === 0) {
+            opacity = Math.min(1, local * 5);
+            if (!isMobile && !prefersReducedMotion) {
+              const rotation = (1 - local) * -18;
+              const scale    = 1.5 - local * 0.5;
+              const x        = (1 - local) * -25;
+              transform = `translateX(${x}%) rotate(${rotation}deg) scale(${scale})`;
+              filter    = `blur(${(1-local)*15}px)`;
+            } else {
+              transform = `scale(1.05)`;
+            }
+          }
+          else if (index === 1 && current === 1) {
+            opacity = Math.min(1, local * 5);
+            if (!isMobile && !prefersReducedMotion) {
+              const scale = 1.5 - local * 0.5;
+              transform = `scale(${scale})`;
+              filter    = `blur(${(1-local)*12}px)`;
+            } else {
+              transform = `scale(1.05)`;
+            }
+          }
+          else if (index === 2 && current === 2) {
+            opacity = Math.min(1, local * 5);
+            if (!isMobile && !prefersReducedMotion) {
+              const scale = 1.2 - local * 0.2;
+              const y     = (1 - local) * 20;
+              transform = `translateY(${y}%) scale(${scale})`;
+              filter    = `blur(${(1-local)*18}px)`;
+              scene.style.clipPath = `polygon(0 ${100-local*100}%, 100% ${100-local*100}%, 100% 100%, 0 100%)`;
+            } else {
+              transform = `scale(1.05)`;
+              scene.style.clipPath = 'none';
+            }
+          }
+          else if (index === 3 && current === 3) {
+            opacity = Math.min(1, local * 4);
+            if (!isMobile && !prefersReducedMotion) {
+              const scale = 1.08 - local * 0.08;
+              transform = `scale(${scale})`;
+              filter    = `blur(${(1-local)*10}px)`;
+            } else {
+              transform = `scale(1.05)`;
+            }
+          }
+          else if (index === 4 && current === 4) {
+            opacity = Math.min(1, local * 5);
+            if (!isMobile && !prefersReducedMotion) {
+              const x = 100 - local * 100;
+              transform = `translateX(${x}%) scale(1.05)`;
+              filter    = `blur(${(1-local)*10}px)`;
+            } else {
+              transform = `scale(1.05)`;
+            }
+          }
+          else if (index === current - 1) {
+            opacity = Math.max(0, 1 - local * 3);
+            transform = 'scale(1.05)';
+            if (!isMobile && !prefersReducedMotion) {
+              filter = `blur(${local*8}px)`;
+            }
+          }
+
+          scene.style.opacity = opacity;
+          scene.style.transform = transform || 'scale(1)';
+          scene.style.filter = filter || 'none';
+        });
+
+        // Update content slides
+        contents.forEach((content, index) => {
+          let opacity = 0;
+          let x = -100;
+
+          if (index === current) {
+            opacity = Math.min(1, local * 6);
+            x = -100 + local * 100;
+          }
+          if (index === current - 1) {
+            opacity = Math.max(0, 1 - local * 5);
+            x = -local * 100;
+          }
+
+          content.style.opacity = opacity;
+          content.style.transform = `translateY(-50%) translateX(${x}px)`;
+        });
+
+        // Update dots
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === current);
+        });
+
+        // Hide scroll hint once user starts scrolling
+        if (scrollHint) {
+          scrollHint.style.opacity = progress > 0.05 ? '0' : '1';
+        }
+      }
+
+      // Frame-throttled scroll handler
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            animateHero();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+
+      // Click a side dot to jump to that scene
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const idx = Number(dot.dataset.index);
+          const storyHeight = heroStory.offsetHeight - window.innerHeight;
+          const targetY = heroStory.offsetTop + (idx / scenes.length) * storyHeight + 10;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        });
+      });
+
+      // Init
+      animateHero();
+    })();
+
     /* =================== SCROLL PROGRESS =================== */
     const scrollProgress = document.getElementById('scrollProgress');
     window.addEventListener('scroll', () => {
@@ -1437,18 +1502,6 @@
     function closeMobile() {
       navToggle.classList.remove('open');
       mobileMenu.classList.remove('open');
-    }
-
-    /* =================== PARTICLES =================== */
-    const particlesContainer = document.getElementById('particles');
-    for (let i = 0; i < 25; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDuration = (8 + Math.random() * 12) + 's';
-      p.style.animationDelay = (Math.random() * 10) + 's';
-      p.style.opacity = 0.3 + Math.random() * 0.5;
-      particlesContainer.appendChild(p);
     }
 
     /* =================== SCROLL REVEAL =================== */
@@ -1490,67 +1543,28 @@
 
     /* =================== VEHICLE SHOWCASE =================== */
     const vehicleData = {
-      'bike': {
-        emoji: '🏍️',
-        title: 'Bike / Motorcycle',
-        desc: 'Perfect for quick deliveries, single passengers, and beating traffic in the city. Best for short distances and lightweight loads.',
-        tags: ['Fast', 'Affordable', 'City-Friendly']
-      },
-      'car': {
-        emoji: '🚗',
-        title: 'Car (Sedan)',
-        desc: 'Comfortable rides for 1–4 passengers. Ideal for airport runs, business travel, or moving small items around town.',
-        tags: ['Comfort', '4 Passengers', 'Urban']
-      },
-      'suv': {
-        emoji: '🚙',
-        title: 'SUV',
-        desc: 'Extra space and legroom for 1–5 passengers. Great for longer trips, family travel, or when you want extra comfort.',
-        tags: ['Spacious', '5 Passengers', 'Comfort']
-      },
-      'van': {
-        emoji: '🚐',
-        title: 'Van',
-        desc: 'Perfect for group travel or moving medium-sized cargo. Fits 6–8 passengers or plenty of equipment.',
-        tags: ['8 Passengers', 'Cargo', 'Group Travel']
-      },
-      'truck-small': {
-        emoji: '🚚',
-        title: 'Small Truck',
-        desc: 'For moving household items, small shop inventories, or medium-sized loads. Best for short-to-medium distances.',
-        tags: ['3.5 Tons', 'Household', 'Local']
-      },
-      'truck-large': {
-        emoji: '🚛',
-        title: 'Large Truck',
-        desc: 'For serious cargo — building materials, bulk goods, and large shipments. Handles long distances with ease.',
-        tags: ['10 Tons', 'Bulk Cargo', 'Long Haul']
-      },
-      'trailer': {
-        emoji: '🚛',
-        title: 'Trailer / Container',
-        desc: 'The biggest option — for full container loads, industrial shipments, and heavy haulage. Interstate and nationwide.',
-        tags: ['40 Ft', 'Industrial', 'Nationwide']
-      }
+      'bike':         { emoji: '🏍️', title: 'Bike / Motorcycle', desc: 'Perfect for quick deliveries, single passengers, and beating traffic in the city.', tags: ['Fast', 'Affordable', 'City-Friendly'] },
+      'car':          { emoji: '🚗', title: 'Car (Sedan)',      desc: 'Comfortable rides for 1–4 passengers. Ideal for airport runs and business travel.',   tags: ['Comfort', '4 Passengers', 'Urban'] },
+      'suv':          { emoji: '🚙', title: 'SUV',              desc: 'Extra space and legroom for 1–5 passengers. Great for longer trips.',              tags: ['Spacious', '5 Passengers', 'Comfort'] },
+      'van':          { emoji: '🚐', title: 'Van',              desc: 'Perfect for group travel or moving medium-sized cargo.',                          tags: ['8 Passengers', 'Cargo', 'Group Travel'] },
+      'truck-small':  { emoji: '🚚', title: 'Small Truck',      desc: 'For moving household items, small shop inventories, or medium-sized loads.',       tags: ['3.5 Tons', 'Household', 'Local'] },
+      'truck-large':  { emoji: '🚛', title: 'Large Truck',      desc: 'For serious cargo — building materials, bulk goods, and large shipments.',         tags: ['10 Tons', 'Bulk Cargo', 'Long Haul'] },
+      'trailer':      { emoji: '🚛', title: 'Trailer / Container', desc: 'The biggest option — for full container loads, industrial shipments, and heavy haulage.', tags: ['40 Ft', 'Industrial', 'Nationwide'] }
     };
 
     document.querySelectorAll('.vehicle-card').forEach(card => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
-
         const data = vehicleData[card.dataset.v];
         const panel = document.getElementById('vehicleInfo');
         panel.style.opacity = '0';
         panel.style.transform = 'translateY(10px)';
-
         setTimeout(() => {
           panel.innerHTML = `
             <div class="info-title">${data.emoji} ${data.title}</div>
             <div class="info-desc">${data.desc}</div>
-            <div class="info-tags">
-              ${data.tags.map(t => `<span class="info-tag">${t}</span>`).join('')}
-            </div>
+            <div class="info-tags">${data.tags.map(t => `<span class="info-tag">${t}</span>`).join('')}</div>
           `;
           panel.style.opacity = '1';
           panel.style.transform = 'translateY(0)';
@@ -1571,15 +1585,9 @@
       dots[i].classList.add('active');
       currentSlide = i;
     }
-    function nextSlide() {
-      goToSlide((currentSlide + 1) % slides.length);
-    }
-    function startAutoPlay() {
-      slideInterval = setInterval(nextSlide, 6000);
-    }
-    function stopAutoPlay() {
-      clearInterval(slideInterval);
-    }
+    function nextSlide() { goToSlide((currentSlide + 1) % slides.length); }
+    function startAutoPlay() { slideInterval = setInterval(nextSlide, 6000); }
+    function stopAutoPlay() { clearInterval(slideInterval); }
 
     dots.forEach(dot => {
       dot.addEventListener('click', () => {
@@ -1599,7 +1607,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    /* =================== NEWSLETTER THANKS =================== */
+    /* =================== NEWSLETTER =================== */
     function showThanks(form) {
       const btn = form.querySelector('button');
       const original = btn.textContent;
@@ -1611,20 +1619,7 @@
       }, 2000);
     }
 
-    /* =================== MAGNETIC BUTTONS (subtle) =================== */
-    document.querySelectorAll('.hero-btn, .cta-btn-large, .nav-cta').forEach(btn => {
-      btn.addEventListener('mousemove', (e) => {
-        const rect = btn.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        btn.style.transform = `translate(${x * 0.08}px, ${y * 0.08}px) translateY(-2px)`;
-      });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.transform = '';
-      });
-    });
-
-    /* =================== SMOOTH SCROLL FOR NAV LINKS =================== */
+    /* =================== SMOOTH SCROLL =================== */
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', (e) => {
         const target = document.querySelector(a.getAttribute('href'));
@@ -1637,9 +1632,7 @@
       });
     });
 
-    /* ============================================================
-       PAGE TRANSITION LOGIC
-       ============================================================ */
+    /* =================== PAGE TRANSITION =================== */
     (function() {
       const overlay = document.getElementById('pageTransition');
       if (!overlay) return;
@@ -1651,7 +1644,6 @@
       document.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (!link) return;
-
         const href = link.getAttribute('href');
         if (!href) return;
 
