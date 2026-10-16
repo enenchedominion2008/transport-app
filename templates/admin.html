@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">  <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dominion · Admin Panel</title>
   <style>
@@ -87,6 +88,27 @@
     tbody td .user { font-weight: 600; color: #0a2a3b; }
     tbody td .sub { font-size: 0.75rem; color: #839eae; }
 
+    /* trip / route cell */
+    .trip-vehicle {
+      font-weight: 700; color: #0a2a3b; font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+    .route-line {
+      display: flex; align-items: center; gap: 0.4rem;
+      flex-wrap: wrap; font-size: 0.78rem;
+    }
+    .route-line .pick {
+      color: #067647; font-weight: 800;
+      background: #e7f8ef; padding: 0.15rem 0.55rem; border-radius: 40px;
+    }
+    .route-line .drop {
+      color: #b42318; font-weight: 800;
+      background: #fdecec; padding: 0.15rem 0.55rem; border-radius: 40px;
+    }
+    .route-line .arrow-sm {
+      color: #2d9cdb; font-weight: 800; font-size: 0.85rem;
+    }
+
     .badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
       padding: 0.28rem 0.7rem; border-radius: 40px;
@@ -101,7 +123,7 @@
       background: #2d9cdb; color: #fff;
       padding: 0.45rem 1rem; border-radius: 40px;
       font-size: 0.78rem; font-weight: 600;
-      text-decoration: none;
+      text-decoration: none; white-space: nowrap;
       transition: background 0.2s;
     }
     .btn-view:hover { background: #1d7bb0; }
@@ -125,14 +147,19 @@
       .container { padding: 1.25rem 1rem 3rem; }
       thead { display: none; }
       tbody, tr, td { display: block; width: 100%; }
-      tbody tr { padding: 0.75rem 0; }
-      tbody td { padding: 0.25rem 1.1rem; }
+      tbody tr {
+        padding: 0.85rem 0; border-bottom: 1px solid #e2edf5;
+      }
+      tbody td {
+        padding: 0.25rem 1.1rem; border: none;
+      }
       tbody td[data-label]::before {
         content: attr(data-label) ": ";
-        font-weight: 600; color: #5e7a8c; font-size: 0.72rem;
-        text-transform: uppercase; letter-spacing: 0.05em;
-        display: block; margin-bottom: 0.15rem;
+        font-weight: 700; color: #5e7a8c; font-size: 0.7rem;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        display: block; margin-bottom: 0.2rem;
       }
+      .btn-view { display: block; text-align: center; margin-top: 0.5rem; }
     }
   </style>
 </head>
@@ -191,7 +218,7 @@
             <tr>
               <th>Reference</th>
               <th>Customer</th>
-              <th>Trip</th>
+              <th>Trip · Route</th>
               <th>Amount</th>
               <th>Status</th>
               <th></th>
@@ -204,26 +231,43 @@
                   <div class="ref">{{ b['reference'] }}</div>
                   <div class="sub">{{ b['created_at'][:16]|replace('T',' ') }}</div>
                 </td>
+
                 <td data-label="Customer">
                   <div class="user">{{ b['firstname'] }} {{ b['lastname'] }}</div>
                   <div class="sub">@{{ b['username'] }} · {{ b['email'] }}</div>
                 </td>
-                <td data-label="Trip">
-                  <div>{{ b['vehicle']|capitalize }} ·
+
+                <td data-label="Trip · Route">
+                  <div class="trip-vehicle">
+                    {{ b['vehicle']|replace('-',' ')|title }} ·
                     {% if b['task'] == 'other' %}
                       {{ b['other_task'] }}
                     {% else %}
                       {{ b['task']|capitalize }}
                     {% endif %}
                   </div>
-                  <div class="sub">→ {{ b['state']|replace('-', ' ')|title }}</div>
+                  <div class="route-line">
+                    <span class="pick">● {{ (b['pickup_state'] or '—')|replace('-',' ')|title }}</span>
+                    <span class="arrow-sm">➜</span>
+                    <span class="drop">● {{ (b['dropoff_state'] or '—')|replace('-',' ')|title }}</span>
+                  </div>
+                  {% if b['pickup_city'] or b['dropoff_city'] %}
+                    <div class="sub" style="margin-top:0.35rem;">
+                      {{ b['pickup_city'] or '' }}
+                      {% if b['pickup_city'] and b['dropoff_city'] %}→{% endif %}
+                      {{ b['dropoff_city'] or '' }}
+                    </div>
+                  {% endif %}
                 </td>
+
                 <td data-label="Amount">
                   <strong>₦{{ '{:,}'.format(b['total_price']) }}</strong>
                 </td>
+
                 <td data-label="Status">
                   <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
                 </td>
+
                 <td>
                   <a href="{{ url_for('admin_booking_detail', reference=b['reference']) }}"
                      class="btn-view">View →</a>
