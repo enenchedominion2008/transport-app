@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">  <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking {{ b['reference'] }} · Admin</title>
+  <title>Dominion · Admin Panel</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { min-height: 100%; }
@@ -11,6 +12,8 @@
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh; background: #f4f7fa; color: #0b2a3b;
     }
+
+    /* ---------- TOPBAR ---------- */
     .topbar {
       background: #0a2a3b; color: #fff;
       padding: 1rem 2rem;
@@ -21,115 +24,116 @@
     .brand { display: flex; align-items: baseline; gap: 0.35rem; font-size: 1.15rem; font-weight: 600; }
     .brand .accent { font-weight: 300; color: #7dc9f0; }
     .topbar-right { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; }
-    .back-link {
-      color: #fff; text-decoration: none; font-size: 0.82rem;
-      background: rgba(255,255,255,0.12); padding: 0.4rem 1rem;
-      border-radius: 40px; border: 1px solid rgba(255,255,255,0.25);
+    .topbar-right .who { color: rgba(255, 255, 255, 0.7); }
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.12); color: #fff;
+      text-decoration: none; padding: 0.4rem 1rem;
+      border-radius: 40px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
-    .back-link:hover { background: rgba(255,255,255,0.22); }
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.22); }
 
-    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-    .card {
-      background: #fff; border-radius: 22px; padding: 2rem;
+    /* ---------- CONTAINER ---------- */
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .page-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-head h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-head p { font-size: 0.9rem; color: #5e7a8c; margin-top: 0.15rem; }
+
+    /* ---------- FILTERS ---------- */
+    .filters {
+      display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .filter {
+      padding: 0.5rem 1rem; border-radius: 40px;
+      background: #fff; color: #5e7a8c; font-size: 0.83rem;
+      font-weight: 600; text-decoration: none;
+      border: 1.5px solid #e2edf5;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .filter:hover { border-color: #b8d4e8; color: #0a2a3b; }
+    .filter.active { background: #0a2a3b; color: #fff; border-color: #0a2a3b; }
+    .filter .count {
+      background: rgba(0, 0, 0, 0.08);
+      padding: 0.05rem 0.55rem; border-radius: 40px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .filter.active .count { background: rgba(255, 255, 255, 0.2); }
+
+    /* ---------- TABLE ---------- */
+    .table-wrap {
+      background: #fff; border-radius: 20px; overflow: hidden;
       box-shadow: 0 12px 30px -14px rgba(10, 42, 59, 0.15);
       border: 1px solid #e2edf5;
-      margin-bottom: 1.5rem;
     }
-    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
-    h2 {
-      font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: #5e7a8c; margin-bottom: 1rem;
-      padding-bottom: 0.5rem; border-bottom: 1px solid #eef4f9;
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead { background: #f9fcff; }
+    thead th {
+      text-align: left; padding: 0.85rem 1.1rem;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #5e7a8c; border-bottom: 1px solid #e2edf5;
     }
-    .ref-line {
-      font-size: 0.78rem; font-weight: 700; color: #2d9cdb;
-      letter-spacing: 0.05em; margin-bottom: 0.25rem;
+    tbody tr { border-bottom: 1px solid #f0f5f9; transition: background 0.2s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fcff; }
+    tbody td { padding: 1rem 1.1rem; vertical-align: middle; }
+    tbody td .ref {
+      font-size: 0.75rem; font-weight: 700; color: #2d9cdb;
+      letter-spacing: 0.03em; margin-bottom: 0.15rem;
     }
-    .row {
-      display: flex; justify-content: space-between; padding: 0.65rem 0;
-      border-bottom: 1px solid #f0f5f9; font-size: 0.9rem;
+    tbody td .user { font-weight: 600; color: #0a2a3b; }
+    tbody td .sub { font-size: 0.75rem; color: #839eae; }
+
+    /* trip / route cell */
+    .trip-vehicle {
+      font-weight: 700; color: #0a2a3b; font-size: 0.9rem;
+      margin-bottom: 0.3rem;
     }
-    .row:last-child { border-bottom: none; }
-    .row .k { color: #5e7a8c; font-weight: 500; }
-    .row .v { color: #0a2a3b; font-weight: 600; text-align: right; }
+    .route-line {
+      display: flex; align-items: center; gap: 0.4rem;
+      flex-wrap: wrap; font-size: 0.78rem;
+    }
+    .route-line .pick {
+      color: #067647; font-weight: 800;
+      background: #e7f8ef; padding: 0.15rem 0.55rem; border-radius: 40px;
+    }
+    .route-line .drop {
+      color: #b42318; font-weight: 800;
+      background: #fdecec; padding: 0.15rem 0.55rem; border-radius: 40px;
+    }
+    .route-line .arrow-sm {
+      color: #2d9cdb; font-weight: 800; font-size: 0.85rem;
+    }
 
     .badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
-      padding: 0.35rem 0.85rem; border-radius: 40px;
-      font-size: 0.72rem; font-weight: 700;
+      padding: 0.28rem 0.7rem; border-radius: 40px;
+      font-size: 0.7rem; font-weight: 700;
       letter-spacing: 0.05em; text-transform: uppercase;
     }
     .badge.pending  { background: #fff6e5; color: #b54708; }
     .badge.approved { background: #e7f8ef; color: #067647; }
     .badge.rejected { background: #fdecec; color: #b42318; }
 
-    .receipt-img {
-      width: 100%; max-height: 480px; object-fit: contain;
-      border-radius: 14px; border: 1px solid #e2edf5;
-      background: #f9fcff; padding: 0.5rem;
-      cursor: zoom-in;
+    .btn-view {
+      background: #2d9cdb; color: #fff;
+      padding: 0.45rem 1rem; border-radius: 40px;
+      font-size: 0.78rem; font-weight: 600;
+      text-decoration: none; white-space: nowrap;
+      transition: background 0.2s;
     }
-    .receipt-link {
-      display: inline-block; margin-top: 0.75rem;
-      color: #2d9cdb; font-size: 0.85rem; font-weight: 600; text-decoration: none;
-    }
-    .receipt-link:hover { text-decoration: underline; }
+    .btn-view:hover { background: #1d7bb0; }
 
-    .total-box {
-      background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
-      border: 1.5px solid #b8dffa; border-radius: 16px;
-      padding: 1.25rem 1.4rem; margin-top: 0.5rem;
-      display: flex; justify-content: space-between; align-items: center;
+    .empty {
+      text-align: center; padding: 3rem 1rem; color: #839eae;
     }
-    .total-box .label {
-      font-size: 0.78rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase; color: #0a2a3b;
-    }
-    .total-box .amt { font-size: 1.6rem; font-weight: 700; color: #0a2a3b; }
+    .empty .icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
 
-    /* action form */
-    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
-    .btn {
-      padding: 0.9rem 1.5rem; border-radius: 40px;
-      font-family: inherit; font-size: 0.92rem; font-weight: 600;
-      border: none; cursor: pointer;
-      transition: all 0.2s; letter-spacing: 0.02em;
-    }
-    .btn-approve {
-      background: #16a34a; color: #fff;
-      box-shadow: 0 10px 20px -8px rgba(22, 163, 74, 0.5);
-      flex: 1;
-    }
-    .btn-approve:hover { background: #15803d; }
-    .btn-reject {
-      background: #dc2626; color: #fff;
-      box-shadow: 0 10px 20px -8px rgba(220, 38, 38, 0.5);
-      flex: 1;
-    }
-    .btn-reject:hover { background: #b91c1c; }
-
-    textarea {
-      width: 100%; min-height: 90px;
-      padding: 0.85rem 1rem;
-      border: 1.5px solid #dae2e9; border-radius: 14px;
-      background: #f9fcff; outline: none;
-      font-family: inherit; font-size: 0.9rem;
-      color: #0b2a3b; resize: vertical;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    textarea:focus {
-      border-color: #2d9cdb; background: #fff;
-      box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
-    }
-
-    .admin-note {
-      background: #fff6e5; border-left: 4px solid #f59e0b;
-      padding: 0.85rem 1.1rem; border-radius: 12px;
-      font-size: 0.88rem; color: #b54708;
-      margin-top: 0.75rem;
-    }
-
+    /* ---------- FLASH ---------- */
     .flash {
       padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.85rem;
       margin-bottom: 1rem; font-weight: 500;
@@ -139,25 +143,44 @@
     .flash.warning { background: #fff6e5; color: #b54708; border-left: 4px solid #f59e0b; }
     .flash.info    { background: #e8f4fd; color: #1c5d8a; border-left: 4px solid #2d9cdb; }
 
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
       .container { padding: 1.25rem 1rem 3rem; }
-      .card { padding: 1.5rem 1.25rem; border-radius: 18px; }
-      .actions { flex-direction: column; }
-      .btn { width: 100%; }
+      thead { display: none; }
+      tbody, tr, td { display: block; width: 100%; }
+      tbody tr {
+        padding: 0.85rem 0; border-bottom: 1px solid #e2edf5;
+      }
+      tbody td {
+        padding: 0.25rem 1.1rem; border: none;
+      }
+      tbody td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 700; color: #5e7a8c; font-size: 0.7rem;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        display: block; margin-bottom: 0.2rem;
+      }
+      .btn-view { display: block; text-align: center; margin-top: 0.5rem; }
     }
   </style>
 </head>
 <body>
 
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">Dominion <span class="accent">Transport · Admin</span></div>
     <div class="topbar-right">
-      <a href="{{ url_for('admin_dashboard') }}" class="back-link">← All bookings</a>
-      <a href="{{ url_for('admin_logout') }}" class="back-link">Log out</a>
+      <span class="who">Signed in as <strong>{{ admin_username }}</strong></span>
+      <a href="{{ url_for('admin_logout') }}" class="logout-btn">Log out</a>
     </div>
   </div>
 
   <div class="container">
+    <div class="page-head">
+      <div>
+        <h1>Bookings</h1>
+        <p>Review user payments and approve or reject each booking.</p>
+      </div>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -167,106 +190,99 @@
       {% endif %}
     {% endwith %}
 
-    <!-- HEADER -->
-    <div class="card">
-      <div class="ref-line">{{ b['reference'] }}</div>
-      <h1>Booking Details</h1>
-      <div style="margin-top:0.75rem;">
-        <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
-      </div>
-      {% if b['admin_note'] %}
-        <div class="admin-note">
-          <strong>Admin note:</strong> {{ b['admin_note'] }}
-        </div>
-      {% endif %}
+    <!-- FILTERS -->
+    <div class="filters">
+      <a href="{{ url_for('admin_dashboard', status='all') }}"
+         class="filter {% if status_filter == 'all' %}active{% endif %}">
+        All <span class="count">{{ counts.all }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='pending') }}"
+         class="filter {% if status_filter == 'pending' %}active{% endif %}">
+        Pending <span class="count">{{ counts.pending }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='approved') }}"
+         class="filter {% if status_filter == 'approved' %}active{% endif %}">
+        Approved <span class="count">{{ counts.approved }}</span>
+      </a>
+      <a href="{{ url_for('admin_dashboard', status='rejected') }}"
+         class="filter {% if status_filter == 'rejected' %}active{% endif %}">
+        Rejected <span class="count">{{ counts.rejected }}</span>
+      </a>
     </div>
 
-    <!-- CUSTOMER -->
-    <div class="card">
-      <h2>Customer</h2>
-      <div class="row"><span class="k">Full name</span><span class="v">{{ b['firstname'] }} {{ b['lastname'] }}</span></div>
-      <div class="row"><span class="k">Username</span><span class="v">@{{ b['username'] }}</span></div>
-      <div class="row"><span class="k">Email</span><span class="v">{{ b['email'] }}</span></div>
-      <div class="row"><span class="k">NIN</span><span class="v">{{ b['nin'] }}</span></div>
-      <div class="row"><span class="k">Date of birth</span><span class="v">{{ b['dob'] }}</span></div>
-    </div>
+    <!-- TABLE -->
+    <div class="table-wrap">
+      {% if bookings and bookings|length > 0 %}
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Customer</th>
+              <th>Trip · Route</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bookings %}
+              <tr>
+                <td data-label="Reference">
+                  <div class="ref">{{ b['reference'] }}</div>
+                  <div class="sub">{{ b['created_at'][:16]|replace('T',' ') }}</div>
+                </td>
 
-    <!-- TRIP -->
-    <div class="card">
-      <h2>Trip</h2>
-      <div class="row"><span class="k">Vehicle</span><span class="v">{{ b['vehicle']|capitalize }}</span></div>
-      <div class="row">
-        <span class="k">Task</span>
-        <span class="v">
-          {% if b['task'] == 'other' %}
-            {{ b['other_task'] }}
-          {% else %}
-            {{ b['task']|capitalize }}
-          {% endif %}
-        </span>
-      </div>
-      <div class="row"><span class="k">Destination state</span><span class="v">{{ b['state']|replace('-',' ')|title }}</span></div>
-      <div class="row"><span class="k">Vehicle fee</span><span class="v">₦{{ '{:,}'.format(b['vehicle_price']) }}</span></div>
-      <div class="row"><span class="k">State fee</span><span class="v">₦{{ '{:,}'.format(b['state_price']) }}</span></div>
+                <td data-label="Customer">
+                  <div class="user">{{ b['firstname'] }} {{ b['lastname'] }}</div>
+                  <div class="sub">@{{ b['username'] }} · {{ b['email'] }}</div>
+                </td>
 
-      <div class="total-box">
-        <span class="label">Total Amount</span>
-        <span class="amt">₦{{ '{:,}'.format(b['total_price']) }}</span>
-      </div>
-    </div>
+                <td data-label="Trip · Route">
+                  <div class="trip-vehicle">
+                    {{ b['vehicle']|replace('-',' ')|title }} ·
+                    {% if b['task'] == 'other' %}
+                      {{ b['other_task'] }}
+                    {% else %}
+                      {{ b['task']|capitalize }}
+                    {% endif %}
+                  </div>
+                  <div class="route-line">
+                    <span class="pick">● {{ (b['pickup_state'] or '—')|replace('-',' ')|title }}</span>
+                    <span class="arrow-sm">➜</span>
+                    <span class="drop">● {{ (b['dropoff_state'] or '—')|replace('-',' ')|title }}</span>
+                  </div>
+                  {% if b['pickup_city'] or b['dropoff_city'] %}
+                    <div class="sub" style="margin-top:0.35rem;">
+                      {{ b['pickup_city'] or '' }}
+                      {% if b['pickup_city'] and b['dropoff_city'] %}→{% endif %}
+                      {{ b['dropoff_city'] or '' }}
+                    </div>
+                  {% endif %}
+                </td>
 
-    <!-- PAYMENT PROOF -->
-    <div class="card">
-      <h2>Payment Proof</h2>
-      <div class="row"><span class="k">Paid from bank</span><span class="v">{{ b['payment_bank']|capitalize if b['payment_bank'] else '—' }}</span></div>
-      <div class="row"><span class="k">Transaction reference</span><span class="v">{{ b['payment_reference'] or '—' }}</span></div>
-      <div class="row"><span class="k">Submitted</span><span class="v">{{ b['created_at'][:16]|replace('T',' ') }}</span></div>
+                <td data-label="Amount">
+                  <strong>₦{{ '{:,}'.format(b['total_price']) }}</strong>
+                </td>
 
-      {% if b['payment_receipt'] %}
-        <div style="margin-top:1rem;">
-          {% if b['payment_receipt'].lower().endswith('.pdf') %}
-            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
-               target="_blank" class="receipt-link">📄 Open PDF receipt</a>
-          {% else %}
-            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}" target="_blank">
-              <img class="receipt-img"
-                   src="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
-                   alt="Payment receipt">
-            </a>
-            <a href="{{ url_for('uploaded_file', filename=b['payment_receipt']) }}"
-               target="_blank" class="receipt-link">🔍 Open full image</a>
-          {% endif %}
-        </div>
+                <td data-label="Status">
+                  <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
+                </td>
+
+                <td>
+                  <a href="{{ url_for('admin_booking_detail', reference=b['reference']) }}"
+                     class="btn-view">View →</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       {% else %}
-        <p style="color:#839eae; font-size:0.88rem; margin-top:0.75rem;">No receipt uploaded.</p>
+        <div class="empty">
+          <div class="icon">📭</div>
+          <div>No bookings to show.</div>
+        </div>
       {% endif %}
     </div>
-
-    <!-- ACTIONS -->
-    <div class="card">
-      <h2>Decision</h2>
-      <form action="{{ url_for('admin_action') }}" method="POST">
-        <input type="hidden" name="reference" value="{{ b['reference'] }}">
-
-        <label for="note" style="font-size:0.72rem; font-weight:600; text-transform:uppercase;
-                                  letter-spacing:0.05em; color:#2c4a5e; display:block;
-                                  margin-bottom:0.4rem;">
-          Note (optional)
-        </label>
-        <textarea id="note" name="note"
-          placeholder="e.g. Payment confirmed via bank alert. Driver assigned."></textarea>
-
-        <div class="actions">
-          <button type="submit" name="action" value="approve" class="btn btn-approve">
-            ✅ Approve Booking
-          </button>
-          <button type="submit" name="action" value="reject" class="btn btn-reject">
-            ✕ Reject Booking
-          </button>
-        </div>
-      </form>
-    </div>
-
   </div>
 
 </body>
