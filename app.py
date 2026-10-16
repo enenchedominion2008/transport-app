@@ -66,7 +66,7 @@ def close_db(exception=None):
 
 
 def init_db():
-    """Create tables if they don't exist."""
+    """Create tables if they don't exist (adds new columns to existing DB)."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -95,7 +95,19 @@ def init_db():
             vehicle            TEXT NOT NULL,
             task               TEXT NOT NULL,
             other_task         TEXT,
-            state              TEXT NOT NULL,
+
+            pickup_state       TEXT,
+            pickup_city        TEXT,
+            pickup_address     TEXT,
+            pickup_contact     TEXT,
+            pickup_phone       TEXT,
+
+            dropoff_state      TEXT,
+            dropoff_city       TEXT,
+            dropoff_address    TEXT,
+            dropoff_contact    TEXT,
+            dropoff_phone      TEXT,
+
             vehicle_price      INTEGER NOT NULL,
             state_price        INTEGER NOT NULL,
             total_price        INTEGER NOT NULL,
@@ -108,6 +120,25 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """)
+
+    # ---------- SAFE MIGRATION: add new pickup/drop-off columns to old DBs ----------
+    cur.execute("PRAGMA table_info(bookings)")
+    existing = {row[1] for row in cur.fetchall()}
+    new_cols = [
+        ("pickup_state",    "TEXT"),
+        ("pickup_city",     "TEXT"),
+        ("pickup_address",  "TEXT"),
+        ("pickup_contact",  "TEXT"),
+        ("pickup_phone",    "TEXT"),
+        ("dropoff_state",   "TEXT"),
+        ("dropoff_city",    "TEXT"),
+        ("dropoff_address", "TEXT"),
+        ("dropoff_contact", "TEXT"),
+        ("dropoff_phone",   "TEXT"),
+    ]
+    for name, coltype in new_cols:
+        if name not in existing:
+            cur.execute(f"ALTER TABLE bookings ADD COLUMN {name} {coltype}")
 
     conn.commit()
     conn.close()
@@ -265,7 +296,8 @@ def send_booking_status_email(to_email, firstname, reference, total,
 
 
 def send_admin_new_booking_email(reference, user_name, user_email,
-                                 vehicle, task, state, total):
+                                 vehicle, task, pickup_state, dropoff_state,
+                                 total):
     """Notify the admin when a new booking is submitted."""
     if not RESEND_API_KEY:
         return False
@@ -274,12 +306,13 @@ def send_admin_new_booking_email(reference, user_name, user_email,
     subject = f"🔔 New Booking {reference} — ₦{total:,}"
     text = (
         f"New booking received!\n\n"
-        f"Reference: {reference}\n"
-        f"Customer:  {user_name} ({user_email})\n"
-        f"Vehicle:   {vehicle}\n"
-        f"Task:      {task}\n"
-        f"State:     {state}\n"
-        f"Amount:    ₦{total:,}\n\n"
+        f"Reference:  {reference}\n"
+        f"Customer:   {user_name} ({user_email})\n"
+        f"Vehicle:    {vehicle}\n"
+        f"Task:       {task}\n"
+        f"Pickup:     {pickup_state}\n"
+        f"Drop-off:   {dropoff_state}\n"
+        f"Amount:     ₦{total:,}\n\n"
         f"Log in to the admin panel to approve or reject.\n"
     )
     html = f"""
@@ -301,8 +334,10 @@ def send_admin_new_booking_email(reference, user_name, user_email,
               <td style="text-align:right;font-weight:600;">{vehicle}</td></tr>
           <tr><td style="padding:6px 0;color:#5e7a8c;">Task</td>
               <td style="text-align:right;font-weight:600;">{task}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">State</td>
-              <td style="text-align:right;font-weight:600;">{state}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Pickup state</td>
+              <td style="text-align:right;font-weight:600;">{pickup_state}</td></tr>
+          <tr><td style="padding:6px 0;color:#5e7a8c;">Drop-off state</td>
+              <td style="text-align:right;font-weight:600;">{dropoff_state}</td></tr>
           <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
               <td style="text-align:right;font-weight:700;">₦{total:,}</td></tr>
         </table>
@@ -526,21 +561,44 @@ def dashboard():
 @app.route("/api/book", methods=["POST"])
 @login_required
 def api_book():
-    vehicle        = (request.form.get("vehicle") or "").strip()
-    task           = (request.form.get("task") or "").strip()
-    other_task     = (request.form.get("otherTask") or "").strip()
-    state          = (request.form.get("state") or "").strip()
-    payment_bank   = (request.form.get("paymentBank") or "").strip()
-    payment_ref    = (request.form.get("paymentReference") or "").strip()
+    # --- core selection ---
+    vehicle    = (request.form.get("vehicle") or "").strip()
+    task       = (request.form.get("task") or "").strip()
+    other_task = (request.form.get("otherTask") or "").strip()
 
+    # --- PICKUP ---
+    pickup_state   = (request.form.get("pickupState")   or "").strip()
+    pickup_city    = (request.form.get("pickupCity")    or "").strip()
+    pickup_address = (request.form.get("pickupAddress") or "").strip()
+    pickup_contact = (request.form.get("pickupContact") or "").strip()
+    pickup_phone   = (request.form.get("pickupPhone")   or "").strip()
+
+    # --- DROP-OFF ---
+    dropoff_state   = (request.form.get("dropoffState")   or "").strip()
+    dropoff_city    = (request.form.get("dropoffCity")    or "").strip()
+    dropoff_address = (request.form.get("dropoffAddress") or "").strip()
+    dropoff_contact = (request.form.get("dropoffContact") or "").strip()
+    dropoff_phone   = (request.form.get("dropoffPhone")   or "").strip()
+
+    # --- payment ---
+    payment_bank = (request.form.get("paymentBank") or "").strip()
+    payment_ref  = (request.form.get("paymentReference") or "").strip()
+
+    # --- validation ---
     if vehicle not in VEHICLE_PRICES:
         return jsonify(ok=False, error="Invalid vehicle type."), 400
     if task not in ("ride", "waybill", "transfer", "other"):
         return jsonify(ok=False, error="Invalid task type."), 400
     if task == "other" and not other_task:
         return jsonify(ok=False, error="Please describe your custom task."), 400
-    if state not in STATE_PRICES:
-        return jsonify(ok=False, error="Invalid state."), 400
+    if pickup_state not in STATE_PRICES:
+        return jsonify(ok=False, error="Please select a valid pickup state."), 400
+    if dropoff_state not in STATE_PRICES:
+        return jsonify(ok=False, error="Please select a valid drop-off state."), 400
+    if not all([pickup_city, pickup_address, pickup_contact, pickup_phone]):
+        return jsonify(ok=False, error="Please complete all pickup details."), 400
+    if not all([dropoff_city, dropoff_address, dropoff_contact, dropoff_phone]):
+        return jsonify(ok=False, error="Please complete all drop-off details."), 400
     if payment_bank not in BANKS:
         return jsonify(ok=False, error="Please select the bank you paid from."), 400
     if not payment_ref:
@@ -552,8 +610,11 @@ def api_book():
     if not allowed_file(receipt.filename):
         return jsonify(ok=False, error="Receipt must be JPG, PNG, or PDF."), 400
 
+    # --- price: state price = max(pickup, dropoff) so cross-state costs are fair ---
     vehicle_price = VEHICLE_PRICES[vehicle]
-    state_price   = STATE_PRICES[state]
+    pickup_price  = STATE_PRICES[pickup_state]
+    dropoff_price = STATE_PRICES[dropoff_state]
+    state_price   = max(pickup_price, dropoff_price)
     total_price   = vehicle_price + state_price
     reference     = generate_reference()
 
@@ -565,13 +626,17 @@ def api_book():
     db = get_db()
     db.execute(
         """INSERT INTO bookings
-           (user_id, reference, vehicle, task, other_task, state,
+           (user_id, reference, vehicle, task, other_task,
+            pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
+            dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
             vehicle_price, state_price, total_price,
             payment_bank, payment_reference, payment_receipt,
             status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?)""",
         (
-            session["user_id"], reference, vehicle, task, other_task or None, state,
+            session["user_id"], reference, vehicle, task, other_task or None,
+            pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
+            dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
             vehicle_price, state_price, total_price,
             payment_bank, payment_ref, saved_receipt,
             "pending",
@@ -580,7 +645,7 @@ def api_book():
     )
     db.commit()
 
-    # --- notify user that we received their booking ---
+    # --- notify user ---
     try:
         user_row = db.execute(
             "SELECT email, firstname FROM users WHERE id=?",
@@ -593,7 +658,9 @@ def api_book():
                 body_text=(
                     f"Hi {user_row['firstname']},\n\n"
                     f"We've received your booking {reference} for ₦{total_price:,}.\n"
-                    f"Status: PENDING — under review.\n\n"
+                    f"Pickup:   {pickup_state} — {pickup_city}\n"
+                    f"Drop-off: {dropoff_state} — {dropoff_city}\n"
+                    f"Status:   PENDING — under review.\n\n"
                     f"We'll email you again once it's been approved or rejected.\n\n"
                     f"— {COMPANY_NAME}"
                 ),
@@ -601,7 +668,7 @@ def api_book():
     except Exception as e:
         print(f"[email] booking received email error: {e}")
 
-    # --- notify admin (you) that a new booking came in ---
+    # --- notify admin ---
     try:
         send_admin_new_booking_email(
             reference=reference,
@@ -609,7 +676,8 @@ def api_book():
             user_email=user_row["email"] if user_row else "unknown",
             vehicle=vehicle,
             task=task if task != "other" else f"Other: {other_task}",
-            state=state,
+            pickup_state=f"{pickup_state} — {pickup_city}",
+            dropoff_state=f"{dropoff_state} — {dropoff_city}",
             total=total_price,
         )
     except Exception as e:
@@ -632,7 +700,8 @@ def api_book():
 def api_bookings():
     db = get_db()
     rows = db.execute(
-        """SELECT reference, vehicle, task, other_task, state,
+        """SELECT reference, vehicle, task, other_task,
+                  pickup_state, pickup_city, dropoff_state, dropoff_city,
                   total_price, status, created_at
            FROM bookings WHERE user_id=? ORDER BY id DESC""",
         (session["user_id"],),
@@ -755,7 +824,6 @@ def admin_action():
     )
     db.commit()
 
-    # --- send email notification to the user ---
     try:
         user_row = db.execute(
             """SELECT u.email, u.firstname, b.total_price
