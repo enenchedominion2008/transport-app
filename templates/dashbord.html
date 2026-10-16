@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">  <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dominion Transport · Dashboard</title>
   <style>
@@ -302,6 +303,7 @@
       background: #f9fcff; outline: none;
       font-family: inherit; color: var(--navy-3);
       transition: all 0.2s;
+      width: 100%;
     }
     .input-group input:focus,
     .input-group select:focus,
@@ -309,7 +311,44 @@
       border-color: var(--blue); background: #fff;
       box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
     }
-    .input-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .input-group textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+    .input-group select {
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e7a8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 1rem center;
+      background-size: 1rem; padding-right: 2.5rem;
+    }
+
+    /* =================== SECTION BLOCKS =================== */
+    .block {
+      border: 1.5px solid var(--g2);
+      border-radius: 18px;
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1.25rem;
+      background: #fbfdff;
+    }
+    .block.pickup  { border-left: 4px solid var(--green); }
+    .block.dropoff { border-left: 4px solid var(--red);   }
+    .block-head {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px dashed var(--g2);
+    }
+    .block-head .pill {
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.25rem 0.7rem; border-radius: 40px;
+    }
+    .block.pickup  .block-head .pill { background:#e7f8ef; color:#067647; }
+    .block.dropoff .block-head .pill { background:#fdecec; color:#b42318; }
+    .block-head h3 { font-size: 1rem; font-weight: 700; color: var(--navy-3); }
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;
+    }
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
 
     /* =================== VEHICLE CARDS =================== */
     .vehicle-grid {
@@ -393,7 +432,7 @@
     }
     .price-box.show {
       padding: 1.1rem 1.2rem;
-      max-height: 300px; opacity: 1;
+      max-height: 320px; opacity: 1;
       margin: 0.5rem 0 1rem;
     }
     .price-row {
@@ -534,8 +573,7 @@
       margin-bottom: 0.85rem;
       border-radius: 18px; background: #fff;
       border: 1px solid var(--g2);
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 1rem; position: relative; overflow: hidden;
+      position: relative; overflow: hidden;
       transition: all 0.25s ease;
       animation: cardIn 0.4s ease both;
     }
@@ -557,7 +595,11 @@
       box-shadow: 0 12px 28px -12px rgba(10, 42, 59, 0.25);
       transform: translateY(-2px);
     }
-    .booking-item .info { flex: 1; min-width: 0; }
+
+    .booking-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 0.75rem; margin-bottom: 0.9rem; flex-wrap: wrap;
+    }
     .booking-item .ref {
       font-size: 0.72rem; font-weight: 800;
       letter-spacing: 0.06em; color: var(--blue-2);
@@ -565,21 +607,50 @@
     }
     .booking-item .desc {
       font-size: 0.95rem; font-weight: 700;
-      color: var(--navy-3); margin-bottom: 0.25rem;
-    }
-    .booking-item .meta {
-      font-size: 0.76rem; color: var(--g3);
-      display: flex; align-items: center; gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-    .booking-item .meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
-    .booking-item .right {
-      display: flex; flex-direction: column; align-items: flex-end;
-      gap: 0.5rem; flex-shrink: 0;
+      color: var(--navy-3);
     }
     .booking-item .amount {
       font-size: 1.05rem; font-weight: 800;
       color: var(--navy-3); letter-spacing: -0.02em;
+      margin-bottom: 0.4rem; text-align: right;
+    }
+
+    /* Route strip inside each booking card */
+    .route {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      gap: 0.75rem; align-items: stretch;
+      margin-top: 0.6rem;
+    }
+    .route .end {
+      padding: 0.7rem 0.85rem;
+      background: #f9fcff; border: 1px solid var(--g2);
+      border-radius: 12px;
+    }
+    .route .end.pickup  { border-left: 4px solid var(--green); }
+    .route .end.dropoff { border-left: 4px solid var(--red);   }
+    .route .tag {
+      font-size: 0.62rem; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+    .route .end.pickup  .tag { color: #067647; }
+    .route .end.dropoff .tag { color: #b42318; }
+    .route .state {
+      font-size: 0.88rem; font-weight: 700; color: var(--navy-3);
+      text-transform: capitalize;
+    }
+    .route .city {
+      font-size: 0.78rem; color: var(--g4); margin-top: 0.1rem;
+    }
+    .route .arrow {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--blue); font-weight: 800; font-size: 1.1rem;
+    }
+
+    .booking-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap;
+      font-size: 0.75rem; color: var(--g3);
     }
 
     /* =================== BADGES =================== */
@@ -817,8 +888,8 @@
         top: 0.75rem; right: 0.75rem; left: 0.75rem; max-width: none;
       }
       .profile-card { flex-direction: column; text-align: center; }
-      .booking-item { flex-direction: column; align-items: stretch; }
-      .booking-item .right { align-items: flex-start; flex-direction: row; justify-content: space-between; }
+      .route { grid-template-columns: 1fr; }
+      .route .arrow { transform: rotate(90deg); }
     }
 
     @media (max-width: 380px) {
@@ -931,7 +1002,7 @@
       <!-- =========================================== -->
       <div class="tab-panel active" id="tab-new">
         <div class="section-title">Book a Service</div>
-        <div class="section-sub">Pick your vehicle, task, and destination. We'll show the price.</div>
+        <div class="section-sub">Pick your vehicle, task, pickup and drop-off. We'll show the price.</div>
 
         <!-- PROGRESS STEPS -->
         <div class="steps">
@@ -1015,49 +1086,167 @@
             </div>
           </div>
 
-          <!-- STEP 3 — STATE -->
-          <div class="input-group">
-            <label for="state">3. Destination State</label>
-            <select id="state" name="state" required onchange="updatePrice()">
-              <option value="" disabled selected>Select your state</option>
-              <option value="abia"        data-price="15000">Abia — ₦15,000</option>
-              <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
-              <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
-              <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
-              <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
-              <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
-              <option value="benue"       data-price="24000">Benue — ₦24,000</option>
-              <option value="borno"       data-price="35000">Borno — ₦35,000</option>
-              <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
-              <option value="delta"       data-price="17000">Delta — ₦17,000</option>
-              <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
-              <option value="edo"         data-price="15000">Edo — ₦15,000</option>
-              <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
-              <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
-              <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
-              <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
-              <option value="imo"         data-price="17000">Imo — ₦17,000</option>
-              <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
-              <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
-              <option value="kano"        data-price="26000">Kano — ₦26,000</option>
-              <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
-              <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
-              <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
-              <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
-              <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
-              <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
-              <option value="niger"       data-price="22000">Niger — ₦22,000</option>
-              <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
-              <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
-              <option value="osun"        data-price="14000">Osun — ₦14,000</option>
-              <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
-              <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
-              <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
-              <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
-              <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
-              <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
-              <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
-            </select>
+          <!-- STEP 3 — PICKUP + DROP-OFF -->
+          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase;
+                        letter-spacing:0.05em; color:var(--g5); display:block;
+                        margin-bottom:0.5rem;">
+            3. Pickup &amp; Drop-off
+          </label>
+
+          <!-- PICKUP BLOCK -->
+          <div class="block pickup">
+            <div class="block-head">
+              <span class="pill">Pickup</span>
+              <h3>Where should we collect the goods?</h3>
+            </div>
+
+            <div class="grid-2">
+              <div class="input-group">
+                <label for="pickupState">Pickup State</label>
+                <select id="pickupState" name="pickupState" required onchange="updatePrice()">
+                  <option value="" disabled selected>Select pickup state</option>
+                  <option value="abia"        data-price="15000">Abia — ₦15,000</option>
+                  <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
+                  <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
+                  <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
+                  <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
+                  <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
+                  <option value="benue"       data-price="24000">Benue — ₦24,000</option>
+                  <option value="borno"       data-price="35000">Borno — ₦35,000</option>
+                  <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
+                  <option value="delta"       data-price="17000">Delta — ₦17,000</option>
+                  <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
+                  <option value="edo"         data-price="15000">Edo — ₦15,000</option>
+                  <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
+                  <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
+                  <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
+                  <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
+                  <option value="imo"         data-price="17000">Imo — ₦17,000</option>
+                  <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
+                  <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
+                  <option value="kano"        data-price="26000">Kano — ₦26,000</option>
+                  <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
+                  <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
+                  <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
+                  <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
+                  <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
+                  <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
+                  <option value="niger"       data-price="22000">Niger — ₦22,000</option>
+                  <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
+                  <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
+                  <option value="osun"        data-price="14000">Osun — ₦14,000</option>
+                  <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
+                  <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
+                  <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
+                  <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
+                  <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
+                  <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
+                  <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="pickupCity">Pickup City / Town</label>
+                <input type="text" id="pickupCity" name="pickupCity"
+                       placeholder="e.g. Ikeja" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="pickupAddress">Pickup Address</label>
+              <textarea id="pickupAddress" name="pickupAddress"
+                        placeholder="Street, building, landmark" required></textarea>
+            </div>
+
+            <div class="grid-2">
+              <div class="input-group">
+                <label for="pickupContact">Contact Name at Pickup</label>
+                <input type="text" id="pickupContact" name="pickupContact"
+                       placeholder="e.g. Chidi Okafor" required>
+              </div>
+              <div class="input-group">
+                <label for="pickupPhone">Contact Phone</label>
+                <input type="tel" id="pickupPhone" name="pickupPhone"
+                       placeholder="e.g. 08012345678" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- DROP-OFF BLOCK -->
+          <div class="block dropoff">
+            <div class="block-head">
+              <span class="pill">Drop-off</span>
+              <h3>Where should we deliver the goods?</h3>
+            </div>
+
+            <div class="grid-2">
+              <div class="input-group">
+                <label for="dropoffState">Drop-off State</label>
+                <select id="dropoffState" name="dropoffState" required onchange="updatePrice()">
+                  <option value="" disabled selected>Select drop-off state</option>
+                  <option value="abia"        data-price="15000">Abia — ₦15,000</option>
+                  <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
+                  <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
+                  <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
+                  <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
+                  <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
+                  <option value="benue"       data-price="24000">Benue — ₦24,000</option>
+                  <option value="borno"       data-price="35000">Borno — ₦35,000</option>
+                  <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
+                  <option value="delta"       data-price="17000">Delta — ₦17,000</option>
+                  <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
+                  <option value="edo"         data-price="15000">Edo — ₦15,000</option>
+                  <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
+                  <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
+                  <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
+                  <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
+                  <option value="imo"         data-price="17000">Imo — ₦17,000</option>
+                  <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
+                  <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
+                  <option value="kano"        data-price="26000">Kano — ₦26,000</option>
+                  <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
+                  <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
+                  <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
+                  <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
+                  <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
+                  <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
+                  <option value="niger"       data-price="22000">Niger — ₦22,000</option>
+                  <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
+                  <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
+                  <option value="osun"        data-price="14000">Osun — ₦14,000</option>
+                  <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
+                  <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
+                  <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
+                  <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
+                  <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
+                  <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
+                  <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="dropoffCity">Drop-off City / Town</label>
+                <input type="text" id="dropoffCity" name="dropoffCity"
+                       placeholder="e.g. Port Harcourt" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="dropoffAddress">Drop-off Address</label>
+              <textarea id="dropoffAddress" name="dropoffAddress"
+                        placeholder="Street, building, landmark" required></textarea>
+            </div>
+
+            <div class="grid-2">
+              <div class="input-group">
+                <label for="dropoffContact">Contact Name at Drop-off</label>
+                <input type="text" id="dropoffContact" name="dropoffContact"
+                       placeholder="e.g. Ngozi Bello" required>
+              </div>
+              <div class="input-group">
+                <label for="dropoffPhone">Contact Phone</label>
+                <input type="tel" id="dropoffPhone" name="dropoffPhone"
+                       placeholder="e.g. 08087654321" required>
+              </div>
+            </div>
           </div>
 
           <!-- PRICE BREAKDOWN -->
@@ -1067,7 +1256,7 @@
               <span class="value" id="vehiclePrice">—</span>
             </div>
             <div class="price-row" id="rowState">
-              <span class="label">State</span>
+              <span class="label">Interstate distance (highest state)</span>
               <span class="value" id="statePrice">—</span>
             </div>
             <div class="price-divider"></div>
@@ -1187,26 +1376,43 @@
           {% if bookings and bookings|length > 0 %}
             {% for b in bookings %}
               <div class="booking-item {{ b['status'] }}">
-                <div class="info">
-                  <div class="ref">{{ b['reference'] }}</div>
-                  <div class="desc">
-                    {{ b['vehicle']|capitalize }} ·
-                    {% if b['task'] == 'other' %}
-                      {{ b['other_task'] }}
-                    {% else %}
-                      {{ b['task']|capitalize }}
-                    {% endif %}
-                    → {{ b['state']|replace('-', ' ')|title }}
+                <div class="booking-head">
+                  <div>
+                    <div class="ref">{{ b['reference'] }}</div>
+                    <div class="desc">
+                      {{ b['vehicle']|replace('-',' ')|title }} ·
+                      {% if b['task'] == 'other' %}
+                        {{ b['other_task'] }}
+                      {% else %}
+                        {{ b['task']|capitalize }}
+                      {% endif %}
+                    </div>
                   </div>
-                  <div class="meta">
-                    <span>🕒 {{ b['created_at'][:16]|replace('T',' ') }}</span>
+                  <div>
+                    <div class="amount">₦{{ '{:,}'.format(b['total_price']) }}</div>
+                    <span class="badge {{ b['status'] }}">
+                      <span class="dot"></span>{{ b['status'] }}
+                    </span>
                   </div>
                 </div>
-                <div class="right">
-                  <div class="amount">₦{{ '{:,}'.format(b['total_price']) }}</div>
-                  <span class="badge {{ b['status'] }}">
-                    <span class="dot"></span>{{ b['status'] }}
-                  </span>
+
+                <!-- PICKUP → DROP-OFF ROUTE -->
+                <div class="route">
+                  <div class="end pickup">
+                    <div class="tag">● Pickup</div>
+                    <div class="state">{{ (b['pickup_state'] or '—')|replace('-',' ')|title }}</div>
+                    <div class="city">{{ b['pickup_city'] or '' }}</div>
+                  </div>
+                  <div class="arrow">➜</div>
+                  <div class="end dropoff">
+                    <div class="tag">● Drop-off</div>
+                    <div class="state">{{ (b['dropoff_state'] or '—')|replace('-',' ')|title }}</div>
+                    <div class="city">{{ b['dropoff_city'] or '' }}</div>
+                  </div>
+                </div>
+
+                <div class="booking-foot">
+                  <span>🕒 {{ b['created_at'][:16]|replace('T',' ') }}</span>
                 </div>
               </div>
             {% endfor %}
@@ -1402,13 +1608,20 @@
 
     /* =================== PRICE =================== */
     function updatePrice() {
-      const vehiclePrice = Number(document.getElementById('vehicle').value ?
-        document.querySelector('.v-card.selected').dataset.price : 0) || 0;
+      const selectedVehicle = document.querySelector('.v-card.selected');
+      const vehiclePrice = selectedVehicle ? Number(selectedVehicle.dataset.price) : 0;
 
-      const stateSelect = document.getElementById('state');
-      const stateOpt    = stateSelect.options[stateSelect.selectedIndex];
-      const statePrice  = stateOpt ? Number(stateOpt.getAttribute('data-price')) || 0 : 0;
+      const pickupSel  = document.getElementById('pickupState');
+      const dropoffSel = document.getElementById('dropoffState');
 
+      const pickupOpt  = pickupSel.options[pickupSel.selectedIndex];
+      const dropoffOpt = dropoffSel.options[dropoffSel.selectedIndex];
+
+      const pickupPrice  = pickupOpt  ? Number(pickupOpt.getAttribute('data-price'))  || 0 : 0;
+      const dropoffPrice = dropoffOpt ? Number(dropoffOpt.getAttribute('data-price')) || 0 : 0;
+
+      // The interstate distance uses the larger of the two state prices
+      const statePrice = Math.max(pickupPrice, dropoffPrice);
       const total = vehiclePrice + statePrice;
 
       const priceBox   = document.getElementById('priceBox');
@@ -1425,7 +1638,7 @@
       totEl.textContent = '₦' + total.toLocaleString();
       payEl.textContent = '₦' + total.toLocaleString();
 
-      if (vehiclePrice > 0 || statePrice > 0) {
+      if (vehiclePrice > 0 && statePrice > 0) {
         priceBox.classList.add('show');
       } else {
         priceBox.classList.remove('show');
@@ -1433,7 +1646,11 @@
       rowVehicle.classList.toggle('muted', !vehiclePrice);
       rowState.classList.toggle('muted',   !statePrice);
 
-      proceedBtn.disabled = !(vehiclePrice > 0 && statePrice > 0);
+      // Require BOTH states before proceeding
+      const hasPickup  = pickupSel.value  && pickupPrice  > 0;
+      const hasDropoff = dropoffSel.value && dropoffPrice > 0;
+      proceedBtn.disabled = !(vehiclePrice > 0 && hasPickup && hasDropoff);
+
       updateSteps();
     }
 
@@ -1441,19 +1658,25 @@
     function updateSteps() {
       const v = document.getElementById('vehicle').value;
       const t = document.getElementById('task').value;
-      const s = document.getElementById('state').value;
+      const p = document.getElementById('pickupState').value;
+      const d = document.getElementById('dropoffState').value;
 
-      if (v) { document.getElementById('step1').classList.add('done'); } else { document.getElementById('step1').classList.remove('done'); }
-      if (v && t) { document.getElementById('line1').classList.add('done'); } else { document.getElementById('line1').classList.remove('done'); }
-      if (t) { document.getElementById('step2').classList.add('done'); } else { document.getElementById('step2').classList.remove('done'); }
-      if (v && t && s) { document.getElementById('line2').classList.add('done'); } else { document.getElementById('line2').classList.remove('done'); }
-      if (s) { document.getElementById('step3').classList.add('done'); } else { document.getElementById('step3').classList.remove('done'); }
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
 
-      document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
-      if (!v) document.getElementById('step1').classList.add('active');
-      else if (!t) document.getElementById('step2').classList.add('active');
-      else if (!s) document.getElementById('step3').classList.add('active');
-      else document.getElementById('step4').classList.add('active');
+      if (v) step1.classList.add('done'); else step1.classList.remove('done');
+      if (t) step2.classList.add('done'); else step2.classList.remove('done');
+      if (p && d) step3.classList.add('done'); else step3.classList.remove('done');
+
+      document.getElementById('line1').classList.toggle('done', !!(v && t));
+      document.getElementById('line2').classList.toggle('done', !!(t && p && d));
+
+      document.querySelectorAll('.step-dot').forEach(dot => dot.classList.remove('active'));
+      if (!v)       document.getElementById('step1').classList.add('active');
+      else if (!t)  document.getElementById('step2').classList.add('active');
+      else if (!(p && d)) document.getElementById('step3').classList.add('active');
+      else          document.getElementById('step4').classList.add('active');
     }
 
     /* =================== COPY ACCOUNT NUMBER =================== */
@@ -1507,17 +1730,37 @@
       const vehicle        = document.getElementById('vehicle').value;
       const task           = document.getElementById('task').value;
       const otherTask      = document.getElementById('otherTask').value.trim();
-      const state          = document.getElementById('state').value;
+
+      const pickupState    = document.getElementById('pickupState').value;
+      const pickupCity     = document.getElementById('pickupCity').value.trim();
+      const pickupAddress  = document.getElementById('pickupAddress').value.trim();
+      const pickupContact  = document.getElementById('pickupContact').value.trim();
+      const pickupPhone    = document.getElementById('pickupPhone').value.trim();
+
+      const dropoffState   = document.getElementById('dropoffState').value;
+      const dropoffCity    = document.getElementById('dropoffCity').value.trim();
+      const dropoffAddress = document.getElementById('dropoffAddress').value.trim();
+      const dropoffContact = document.getElementById('dropoffContact').value.trim();
+      const dropoffPhone   = document.getElementById('dropoffPhone').value.trim();
+
       const paymentBank    = document.getElementById('paymentBank').value;
       const paymentRef     = document.getElementById('paymentReference').value.trim();
       const receiptFile    = document.getElementById('paymentReceipt').files[0];
 
-      if (!vehicle || !task || !state) {
-        showToast('Missing details', 'Please fill in vehicle, task, and state.', 'error', 4200);
+      if (!vehicle || !task) {
+        showToast('Missing details', 'Please choose a vehicle and task type.', 'error', 4200);
         return;
       }
       if (task === 'other' && !otherTask) {
         showToast('Describe your task', 'Please type what you want to do.', 'warning', 4200);
+        return;
+      }
+      if (!pickupState || !pickupCity || !pickupAddress || !pickupContact || !pickupPhone) {
+        showToast('Pickup incomplete', 'Please fill in all pickup details.', 'error', 4200);
+        return;
+      }
+      if (!dropoffState || !dropoffCity || !dropoffAddress || !dropoffContact || !dropoffPhone) {
+        showToast('Drop-off incomplete', 'Please fill in all drop-off details.', 'error', 4200);
         return;
       }
       if (!paymentBank) {
@@ -1541,7 +1784,16 @@
       fd.append('vehicle', vehicle);
       fd.append('task', task);
       fd.append('otherTask', otherTask);
-      fd.append('state', state);
+      fd.append('pickupState', pickupState);
+      fd.append('pickupCity', pickupCity);
+      fd.append('pickupAddress', pickupAddress);
+      fd.append('pickupContact', pickupContact);
+      fd.append('pickupPhone', pickupPhone);
+      fd.append('dropoffState', dropoffState);
+      fd.append('dropoffCity', dropoffCity);
+      fd.append('dropoffAddress', dropoffAddress);
+      fd.append('dropoffContact', dropoffContact);
+      fd.append('dropoffPhone', dropoffPhone);
       fd.append('paymentBank', paymentBank);
       fd.append('paymentReference', paymentRef);
       fd.append('paymentReceipt', receiptFile);
