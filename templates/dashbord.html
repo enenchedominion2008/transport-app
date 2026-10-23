@@ -9,43 +9,21 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --navy:      #0a1c2b;
-      --navy-2:    #12354d;
-      --navy-3:    #0a2a3b;
-      --blue:      #2d9cdb;
-      --blue-2:    #1d7bb0;
-      --blue-soft: #7dc9f0;
-      --green:     #16a34a;
-      --amber:     #f59e0b;
-      --red:       #dc2626;
-      --g1: #f4f7fa;
-      --g2: #e2edf5;
-      --g3: #839eae;
-      --g4: #5e7a8c;
-      --g5: #2c4a5e;
+      --navy: #0a1c2b; --navy-2: #12354d; --navy-3: #0a2a3b;
+      --blue: #2d9cdb; --blue-2: #1d7bb0; --blue-soft: #7dc9f0;
+      --green: #16a34a; --amber: #f59e0b; --red: #dc2626;
+      --g1: #f4f7fa; --g2: #e2edf5; --g3: #839eae; --g4: #5e7a8c; --g5: #2c4a5e;
     }
 
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-height: 100vh;
-      background: var(--navy);
-      color: var(--navy-3);
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; background: var(--navy); color: var(--navy-3);
+      overflow-x: hidden; -webkit-font-smoothing: antialiased;
     }
 
-    /* =================== BACKGROUND =================== */
     .page-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
-    .page-bg img {
-      width: 100%; height: 100%; object-fit: cover;
-      transform: scale(1.05);
-      animation: kenBurns 24s ease-in-out infinite alternate;
-    }
-    @keyframes kenBurns {
-      from { transform: scale(1.05) translate(0, 0); }
-      to   { transform: scale(1.15) translate(-1.5%, -1.5%); }
-    }
+    .page-bg img { width: 100%; height: 100%; object-fit: cover; }
     .page-bg::after {
       content: ""; position: absolute; inset: 0;
       background:
@@ -55,116 +33,72 @@
       z-index: 1;
     }
 
-    /* =================== TOPBAR =================== */
     .topbar {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0.9rem 2rem;
       background: rgba(10, 28, 43, 0.55);
       backdrop-filter: blur(18px) saturate(180%);
-      -webkit-backdrop-filter: blur(18px) saturate(180%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .brand {
-      display: flex; align-items: baseline; gap: 0.4rem;
-      color: #fff; font-weight: 700; font-size: 1.2rem;
-      letter-spacing: -0.02em;
-    }
+    .brand { display: flex; align-items: baseline; gap: 0.4rem; color: #fff; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
     .brand .accent { font-weight: 300; color: var(--blue-soft); }
-    .brand .dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
-      margin-left: 0.5rem;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
-      50%      { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1); }
-    }
+    .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-left: 0.5rem; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
 
     .topbar-right { display: flex; align-items: center; gap: 0.9rem; }
-
     .user-menu { position: relative; }
     .user-chip {
       display: flex; align-items: center; gap: 0.6rem;
       padding: 0.35rem 0.85rem 0.35rem 0.35rem;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 40px; cursor: pointer;
-      transition: all 0.2s;
-      color: #fff; font-size: 0.85rem; font-weight: 500;
+      border-radius: 40px; cursor: pointer; color: #fff; font-size: 0.85rem; font-weight: 500;
     }
-    .user-chip:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.22); }
     .user-chip .avatar {
       width: 30px; height: 30px; border-radius: 50%;
       background: linear-gradient(135deg, var(--blue) 0%, var(--blue-2) 100%);
       display: flex; align-items: center; justify-content: center;
       font-weight: 700; font-size: 0.78rem; color: #fff;
-      box-shadow: 0 4px 10px -3px rgba(45, 156, 219, 0.6);
     }
-    .user-chip .caret { opacity: 0.6; font-size: 0.65rem; }
-
     .dropdown {
       position: absolute; right: 0; top: calc(100% + 0.5rem);
       background: #fff; border-radius: 16px;
       box-shadow: 0 20px 50px -12px rgba(10, 28, 43, 0.4);
       min-width: 220px; padding: 0.5rem;
-      opacity: 0; pointer-events: none;
-      transform: translateY(-8px);
-      transition: all 0.2s ease;
-      z-index: 200;
+      opacity: 0; pointer-events: none; transform: translateY(-8px);
+      transition: all 0.2s ease; z-index: 200;
     }
     .dropdown.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
-    .dropdown .user-info {
-      padding: 0.75rem 1rem; border-bottom: 1px solid var(--g2);
-      margin-bottom: 0.4rem;
-    }
+    .dropdown .user-info { padding: 0.75rem 1rem; border-bottom: 1px solid var(--g2); margin-bottom: 0.4rem; }
     .dropdown .user-info .name { font-size: 0.88rem; font-weight: 700; color: var(--navy-3); }
     .dropdown .user-info .email { font-size: 0.75rem; color: var(--g3); margin-top: 0.1rem; }
     .dropdown a {
       display: flex; align-items: center; gap: 0.65rem;
       padding: 0.65rem 1rem; border-radius: 10px;
       font-size: 0.85rem; font-weight: 500; color: var(--g5);
-      text-decoration: none; transition: background 0.15s;
+      text-decoration: none;
     }
-    .dropdown a:hover { background: var(--g1); color: var(--navy-3); }
+    .dropdown a:hover { background: var(--g1); }
     .dropdown a.danger { color: var(--red); }
-    .dropdown a.danger:hover { background: #fdecec; }
 
-    /* =================== LAYOUT =================== */
-    .container {
-      position: relative; z-index: 2;
-      max-width: 1080px; margin: 0 auto;
-      padding: 2.5rem 1.5rem 4rem;
-    }
+    .container { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
-    .hero { margin-bottom: 2rem; animation: fadeUp 0.6s ease both; }
-    .hero h1 {
-      color: #fff; font-size: clamp(1.6rem, 3.5vw, 2.3rem);
-      font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.35rem;
-    }
+    .hero { margin-bottom: 2rem; }
+    .hero h1 { color: #fff; font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.35rem; }
     .hero h1 .name { color: var(--blue-soft); }
     .hero p { color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; }
     .hero .live-time {
       display: inline-flex; align-items: center; gap: 0.4rem;
-      margin-top: 0.65rem;
-      font-size: 0.78rem; color: rgba(255, 255, 255, 0.55);
+      margin-top: 0.65rem; font-size: 0.78rem; color: rgba(255, 255, 255, 0.55);
       background: rgba(255, 255, 255, 0.06);
       padding: 0.3rem 0.75rem; border-radius: 40px;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .hero .live-time .tick {
-      width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
-      animation: pulse 1.6s infinite;
-    }
+    .hero .live-time .tick { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
 
-    /* =================== STATS =================== */
     .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.85rem;
-      margin-bottom: 2rem;
-      animation: fadeUp 0.7s ease 0.1s both;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.85rem; margin-bottom: 2rem;
     }
     .stat {
       padding: 1.1rem 1.2rem;
@@ -172,51 +106,29 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 18px;
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      transition: transform 0.25s, background 0.25s, border-color 0.25s;
     }
-    .stat:hover {
-      transform: translateY(-3px);
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(125, 201, 240, 0.35);
-    }
-    .stat .label {
-      color: rgba(255, 255, 255, 0.65);
-      font-size: 0.72rem; font-weight: 600;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      margin-bottom: 0.4rem;
-    }
-    .stat .value {
-      color: #fff; font-size: 1.5rem; font-weight: 700;
-      letter-spacing: -0.02em; line-height: 1.1;
-    }
+    .stat .label { color: rgba(255, 255, 255, 0.65); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .stat .value { color: #fff; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
     .stat .value.accent { color: var(--blue-soft); }
-    .stat .value.warn   { color: #fbbf24; }
-    .stat .value.good   { color: #4ade80; }
+    .stat .value.warn { color: #fbbf24; }
+    .stat .value.good { color: #4ade80; }
 
-    /* =================== TABS =================== */
     .tabs {
       display: flex; gap: 0.4rem; margin-bottom: 1.5rem;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 0.35rem; border-radius: 40px;
       backdrop-filter: blur(12px);
-      animation: fadeUp 0.7s ease 0.15s both;
     }
     .tab {
-      flex: 1; padding: 0.7rem 1rem;
-      background: transparent; border: none; cursor: pointer;
-      border-radius: 40px;
+      flex: 1; padding: 0.7rem 1rem; background: transparent; border: none;
+      cursor: pointer; border-radius: 40px;
       font-family: inherit; font-size: 0.85rem; font-weight: 600;
       color: rgba(255, 255, 255, 0.6);
-      transition: all 0.2s;
       display: flex; align-items: center; justify-content: center; gap: 0.4rem;
     }
     .tab:hover { color: #fff; }
-    .tab.active {
-      background: #fff; color: var(--navy-3);
-      box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.4);
-    }
+    .tab.active { background: #fff; color: var(--navy-3); }
     .tab .count {
       background: rgba(0, 0, 0, 0.08);
       padding: 0.1rem 0.5rem; border-radius: 40px;
@@ -224,90 +136,50 @@
     }
     .tab.active .count { background: rgba(45, 156, 219, 0.15); color: var(--blue-2); }
 
-    /* =================== CARD =================== */
     .dash-card {
       background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      border-radius: 26px;
-      padding: 2rem;
+      border-radius: 26px; padding: 2rem;
       box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.55);
       border: 1px solid rgba(255, 255, 255, 0.5);
-      animation: fadeUp 0.7s ease 0.2s both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
     }
 
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: panelIn 0.4s ease both; }
-    @keyframes panelIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    .tab-panel.active { display: block; }
 
-    .section-title {
-      font-size: 1.35rem; font-weight: 700;
-      letter-spacing: -0.02em; color: var(--navy-3); margin-bottom: 0.2rem;
-    }
-    .section-sub {
-      font-size: 0.88rem; color: var(--g4);
-      margin-bottom: 1.5rem; padding-left: 0.75rem;
-      border-left: 3px solid var(--blue);
-    }
+    .section-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; color: var(--navy-3); margin-bottom: 0.2rem; }
+    .section-sub { font-size: 0.88rem; color: var(--g4); margin-bottom: 1.5rem; padding-left: 0.75rem; border-left: 3px solid var(--blue); }
 
-    /* =================== PROGRESS STEPS =================== */
     .steps {
-      display: flex; align-items: center;
-      margin-bottom: 2rem; padding: 0 0.5rem;
+      display: flex; align-items: center; margin-bottom: 2rem; padding: 0 0.5rem;
     }
     .step-dot {
       display: flex; align-items: center; justify-content: center;
       width: 34px; height: 34px; border-radius: 50%;
       background: var(--g2); color: var(--g3);
-      font-size: 0.85rem; font-weight: 700;
-      flex-shrink: 0;
+      font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
       transition: all 0.3s ease;
-      position: relative; z-index: 1;
     }
     .step-dot.active {
       background: linear-gradient(135deg, var(--blue) 0%, var(--blue-2) 100%);
-      color: #fff;
-      box-shadow: 0 6px 16px -4px rgba(45, 156, 219, 0.6);
-      transform: scale(1.1);
+      color: #fff; box-shadow: 0 6px 16px -4px rgba(45, 156, 219, 0.6);
     }
     .step-dot.done { background: var(--green); color: #fff; }
-    .step-line {
-      flex: 1; height: 2px; background: var(--g2);
-      transition: background 0.4s ease;
-    }
+    .step-line { flex: 1; height: 2px; background: var(--g2); transition: background 0.4s ease; }
     .step-line.done { background: var(--green); }
 
-    /* =================== INPUTS =================== */
     .input-group { margin-bottom: 1.1rem; display: flex; flex-direction: column; }
     .input-group label {
-      font-size: 0.72rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      color: var(--g5); margin-bottom: 0.4rem;
-      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--g5); margin-bottom: 0.4rem;
     }
-    .input-group label .hint {
-      font-size: 0.68rem; font-weight: 500;
-      color: var(--g3); text-transform: none; letter-spacing: 0;
-    }
-    .input-group input,
-    .input-group select,
-    .input-group textarea {
+    .input-group input, .input-group select, .input-group textarea {
       padding: 0.85rem 1rem; font-size: 0.92rem;
       border: 1.5px solid var(--g2); border-radius: 14px;
       background: #f9fcff; outline: none;
-      font-family: inherit; color: var(--navy-3);
-      transition: all 0.2s;
+      font-family: inherit; color: var(--navy-3); transition: all 0.2s;
       width: 100%;
     }
-    .input-group input:focus,
-    .input-group select:focus,
-    .input-group textarea:focus {
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
       border-color: var(--blue); background: #fff;
       box-shadow: 0 0 0 4px rgba(45, 156, 219, 0.12);
     }
@@ -319,439 +191,228 @@
       background-size: 1rem; padding-right: 2.5rem;
     }
 
-    /* =================== SECTION BLOCKS =================== */
     .block {
-      border: 1.5px solid var(--g2);
-      border-radius: 18px;
-      padding: 1.25rem 1.35rem;
-      margin-bottom: 1.25rem;
-      background: #fbfdff;
+      border: 1.5px solid var(--g2); border-radius: 18px;
+      padding: 1.25rem 1.35rem; margin-bottom: 1.25rem; background: #fbfdff;
     }
-    .block.pickup  { border-left: 4px solid var(--green); }
-    .block.dropoff { border-left: 4px solid var(--red);   }
+    .block.pickup { border-left: 4px solid var(--green); }
+    .block.dropoff { border-left: 4px solid var(--red); }
     .block-head {
       display: flex; align-items: center; gap: 0.6rem;
-      margin-bottom: 1rem;
-      padding-bottom: 0.6rem;
+      margin-bottom: 1rem; padding-bottom: 0.6rem;
       border-bottom: 1px dashed var(--g2);
     }
     .block-head .pill {
-      font-size: 0.68rem; font-weight: 800;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 0.25rem 0.7rem; border-radius: 40px;
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 0.25rem 0.7rem; border-radius: 40px;
     }
-    .block.pickup  .block-head .pill { background:#e7f8ef; color:#067647; }
+    .block.pickup .block-head .pill { background:#e7f8ef; color:#067647; }
     .block.dropoff .block-head .pill { background:#fdecec; color:#b42318; }
     .block-head h3 { font-size: 1rem; font-weight: 700; color: var(--navy-3); }
-    .grid-2 {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;
-    }
-    @media (max-width: 640px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
 
-    /* =================== VEHICLE CARDS =================== */
     .vehicle-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 0.65rem; margin-bottom: 1.5rem;
     }
     .v-card {
       padding: 0.9rem 0.75rem;
       background: #f9fcff; border: 2px solid var(--g2);
-      border-radius: 14px; cursor: pointer;
-      text-align: center; position: relative;
-      user-select: none;
-      transition: all 0.2s ease;
+      border-radius: 14px; cursor: pointer; text-align: center;
+      position: relative; user-select: none; transition: all 0.2s ease;
     }
-    .v-card:hover {
-      border-color: var(--blue-soft);
-      background: #eaf6ff;
-      transform: translateY(-2px);
-    }
+    .v-card:hover { border-color: var(--blue-soft); background: #eaf6ff; }
     .v-card.selected {
       border-color: var(--blue);
       background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
       box-shadow: 0 8px 18px -6px rgba(45, 156, 219, 0.4);
     }
     .v-card.selected::after {
-      content: "✓";
-      position: absolute; top: 6px; right: 8px;
+      content: "✓"; position: absolute; top: 6px; right: 8px;
       width: 20px; height: 20px; border-radius: 50%;
       background: var(--blue); color: #fff;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.7rem; font-weight: 700;
     }
     .v-card .emoji { font-size: 1.5rem; display: block; margin-bottom: 0.35rem; }
-    .v-card .name {
-      font-size: 0.82rem; font-weight: 700; color: var(--navy-3);
-      display: block;
-    }
-    .v-card .price {
-      font-size: 0.72rem; font-weight: 600; color: var(--blue-2);
-      margin-top: 0.15rem; display: block;
-    }
+    .v-card .name { font-size: 0.82rem; font-weight: 700; color: var(--navy-3); display: block; }
+    .v-card .price { font-size: 0.72rem; font-weight: 600; color: var(--blue-2); margin-top: 0.15rem; display: block; }
 
-    /* =================== TASK PILLS =================== */
     .task-pills {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 0.55rem; margin-bottom: 1.25rem;
     }
     .t-pill {
       padding: 0.85rem 0.75rem;
       background: #f9fcff; border: 2px solid var(--g2);
-      border-radius: 14px; cursor: pointer;
-      text-align: center;
+      border-radius: 14px; cursor: pointer; text-align: center;
       font-size: 0.85rem; font-weight: 600;
-      color: var(--g5); transition: all 0.2s;
-      user-select: none;
+      color: var(--g5); transition: all 0.2s; user-select: none;
     }
-    .t-pill:hover { border-color: var(--blue-soft); background: #eaf6ff; color: var(--navy-3); }
+    .t-pill:hover { border-color: var(--blue-soft); background: #eaf6ff; }
     .t-pill.selected {
       border-color: var(--blue);
       background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
       color: var(--navy-3);
-      box-shadow: 0 8px 18px -6px rgba(45, 156, 219, 0.4);
     }
 
-    .other-task {
-      max-height: 0; overflow: hidden; opacity: 0;
-      transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
-      margin-bottom: 0;
-    }
+    .other-task { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; }
     .other-task.show { max-height: 200px; opacity: 1; margin-bottom: 1.1rem; }
 
-    /* =================== PRICE BOX =================== */
     .price-box {
       background: linear-gradient(135deg, #eaf6ff 0%, #d8eeff 100%);
-      border: 1.5px solid #b8dffa;
-      border-radius: 16px; padding: 0;
-      max-height: 0; overflow: hidden; opacity: 0;
+      border: 1.5px solid #b8dffa; border-radius: 16px;
+      padding: 0; max-height: 0; overflow: hidden; opacity: 0;
       transition: all 0.4s ease; margin: 0;
     }
-    .price-box.show {
-      padding: 1.1rem 1.2rem;
-      max-height: 320px; opacity: 1;
-      margin: 0.5rem 0 1rem;
-    }
-    .price-row {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.88rem; padding: 0.35rem 0; color: var(--g5);
-    }
+    .price-box.show { padding: 1.1rem 1.2rem; max-height: 320px; opacity: 1; margin: 0.5rem 0 1rem; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; padding: 0.35rem 0; color: var(--g5); }
     .price-row .value { font-weight: 700; color: var(--navy-3); }
     .price-row.muted { opacity: 0.5; }
     .price-divider { height: 1px; background: #b8dffa; margin: 0.55rem 0; }
     .price-total { display: flex; justify-content: space-between; align-items: center; }
-    .price-total .label {
-      font-size: 0.75rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--navy-3);
-    }
-    .price-total .value {
-      font-size: 1.5rem; font-weight: 800;
-      color: var(--navy-3); letter-spacing: -0.02em;
-    }
+    .price-total .label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy-3); }
+    .price-total .value { font-size: 1.5rem; font-weight: 800; color: var(--navy-3); letter-spacing: -0.02em; }
 
-    /* =================== BUTTONS =================== */
     .primary-btn {
       width: 100%; padding: 1rem 1.25rem;
       background: var(--navy-3); color: #fff;
       font-weight: 700; font-size: 0.95rem;
-      border: none; border-radius: 40px;
-      cursor: pointer; transition: all 0.2s;
-      letter-spacing: 0.02em;
+      border: none; border-radius: 40px; cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.02em;
       box-shadow: 0 10px 22px -8px rgba(10, 42, 59, 0.5);
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
     }
-    .primary-btn:hover { background: #1d4b63; transform: translateY(-1px); }
-    .primary-btn:active { transform: translateY(0) scale(0.99); }
-    .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .primary-btn:hover { background: #1d4b63; }
+    .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .primary-btn.accent {
       background: linear-gradient(135deg, var(--blue) 0%, var(--blue-2) 100%);
       box-shadow: 0 10px 22px -8px rgba(45, 156, 219, 0.6);
     }
-    .primary-btn.accent:hover { background: linear-gradient(135deg, var(--blue-2) 0%, #155f8a 100%); }
 
     .ghost-btn {
       width: 100%; padding: 0.9rem 1.25rem;
       background: transparent; color: var(--g4);
       font-weight: 600; font-size: 0.9rem;
       border: 1.5px solid var(--g2); border-radius: 40px;
-      cursor: pointer; transition: all 0.2s;
-      margin-top: 0.5rem;
+      cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
     }
     .ghost-btn:hover { background: var(--g1); border-color: var(--blue-soft); color: var(--navy-3); }
 
-    /* =================== PAYMENT PANEL =================== */
-    .pay-panel {
-      max-height: 0; overflow: hidden; opacity: 0;
-      transition: max-height 0.55s ease, opacity 0.4s ease, margin 0.3s ease;
-    }
+    .pay-panel { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.55s ease, opacity 0.4s ease, margin 0.3s ease; }
     .pay-panel.show { max-height: 1600px; opacity: 1; margin: 0.75rem 0 1rem; }
 
     .bank-info {
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
-      color: #fff;
-      padding: 1.4rem 1.5rem;
-      border-radius: 20px;
-      margin-bottom: 1.25rem;
-      box-shadow: 0 20px 40px -14px rgba(10, 28, 43, 0.6);
-      position: relative; overflow: hidden;
-    }
-    .bank-info::before {
-      content: ""; position: absolute; top: -60%; right: -20%;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.3) 0%, transparent 70%);
-      border-radius: 50%; pointer-events: none;
+      color: #fff; padding: 1.4rem 1.5rem;
+      border-radius: 20px; margin-bottom: 1.25rem;
     }
     .bank-info h4 {
-      font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--blue-soft); margin-bottom: 0.9rem;
-      display: flex; align-items: center; gap: 0.5rem;
-      position: relative; z-index: 2;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--blue-soft); margin-bottom: 0.9rem;
     }
     .bank-info .line {
       display: flex; justify-content: space-between; align-items: center;
       font-size: 0.92rem; padding: 0.5rem 0;
       border-bottom: 1px dashed rgba(255, 255, 255, 0.14);
-      position: relative; z-index: 2;
     }
     .bank-info .line:last-of-type { border-bottom: none; }
     .bank-info .line span:first-child { color: rgba(255, 255, 255, 0.65); }
     .bank-info .line span:last-child { font-weight: 700; }
-    .bank-info .amount {
-      font-size: 1.5rem; font-weight: 800; color: var(--blue-soft);
-      letter-spacing: -0.02em;
-    }
+    .bank-info .amount { font-size: 1.5rem; font-weight: 800; color: var(--blue-soft); }
     .copy-btn {
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #fff; padding: 0.35rem 0.7rem;
       border-radius: 40px; font-size: 0.72rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
-      display: inline-flex; align-items: center; gap: 0.3rem;
+      cursor: pointer;
     }
-    .copy-btn:hover { background: rgba(255, 255, 255, 0.22); }
-    .copy-btn.copied { background: var(--green); border-color: var(--green); }
-    .bank-info .copy-hint {
-      font-size: 0.75rem; color: rgba(255, 255, 255, 0.6);
-      margin-top: 0.8rem; text-align: center;
-      position: relative; z-index: 2;
-    }
+    .bank-info .copy-hint { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); margin-top: 0.8rem; text-align: center; }
 
-    /* =================== FILE UPLOAD =================== */
     .file-upload {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 1.75rem 1rem;
       border: 2px dashed #b8d4e8; border-radius: 16px;
-      background: #f4faff; cursor: pointer;
-      text-align: center; position: relative;
-      transition: all 0.2s;
+      background: #f4faff; cursor: pointer; text-align: center; position: relative;
     }
-    .file-upload:hover { border-color: var(--blue); background: #eaf6ff; }
-    .file-upload.has-file {
-      border-color: var(--green); background: #f0fdf4;
-      border-style: solid;
-    }
-    .file-upload input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer;
-    }
+    .file-upload.has-file { border-color: var(--green); background: #f0fdf4; border-style: solid; }
+    .file-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .file-upload .upload-icon { font-size: 1.75rem; margin-bottom: 0.4rem; }
     .file-upload .upload-text { font-size: 0.88rem; font-weight: 700; color: var(--g5); }
     .file-upload .upload-hint { font-size: 0.72rem; color: var(--g3); margin-top: 0.2rem; }
-    .file-upload .file-name {
-      margin-top: 0.65rem; font-size: 0.78rem; font-weight: 700;
-      color: var(--green); word-break: break-all;
-    }
+    .file-upload .file-name { margin-top: 0.65rem; font-size: 0.78rem; font-weight: 700; color: var(--green); word-break: break-all; }
 
-    /* =================== BOOKING CARD =================== */
     .booking-item {
-      padding: 1.15rem 1.25rem;
-      margin-bottom: 0.85rem;
+      padding: 1.15rem 1.25rem; margin-bottom: 0.85rem;
       border-radius: 18px; background: #fff;
       border: 1px solid var(--g2);
       position: relative; overflow: hidden;
-      transition: all 0.25s ease;
-      animation: cardIn 0.4s ease both;
     }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .booking-item::before {
-      content: ""; position: absolute;
-      left: 0; top: 0; bottom: 0; width: 4px;
-      background: var(--g2);
-      transition: background 0.3s;
-    }
-    .booking-item.pending::before  { background: var(--amber); }
+    .booking-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--g2); }
+    .booking-item.pending::before { background: var(--amber); }
     .booking-item.approved::before { background: var(--green); }
     .booking-item.rejected::before { background: var(--red); }
-    .booking-item:hover {
-      border-color: var(--blue-soft);
-      box-shadow: 0 12px 28px -12px rgba(10, 42, 59, 0.25);
-      transform: translateY(-2px);
-    }
 
     .booking-head {
       display: flex; justify-content: space-between; align-items: flex-start;
       gap: 0.75rem; margin-bottom: 0.9rem; flex-wrap: wrap;
     }
-    .booking-item .ref {
-      font-size: 0.72rem; font-weight: 800;
-      letter-spacing: 0.06em; color: var(--blue-2);
-      margin-bottom: 0.25rem;
-    }
-    .booking-item .desc {
-      font-size: 0.95rem; font-weight: 700;
-      color: var(--navy-3);
-    }
-    .booking-item .amount {
-      font-size: 1.05rem; font-weight: 800;
-      color: var(--navy-3); letter-spacing: -0.02em;
-      margin-bottom: 0.4rem; text-align: right;
-    }
+    .booking-item .ref { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; color: var(--blue-2); margin-bottom: 0.25rem; }
+    .booking-item .desc { font-size: 0.95rem; font-weight: 700; color: var(--navy-3); }
+    .booking-item .amount { font-size: 1.05rem; font-weight: 800; color: var(--navy-3); margin-bottom: 0.4rem; text-align: right; }
 
-    /* Route strip inside each booking card */
-    .route {
-      display: grid; grid-template-columns: 1fr auto 1fr;
-      gap: 0.75rem; align-items: stretch;
-      margin-top: 0.6rem;
-    }
-    .route .end {
-      padding: 0.7rem 0.85rem;
-      background: #f9fcff; border: 1px solid var(--g2);
-      border-radius: 12px;
-    }
-    .route .end.pickup  { border-left: 4px solid var(--green); }
-    .route .end.dropoff { border-left: 4px solid var(--red);   }
-    .route .tag {
-      font-size: 0.62rem; font-weight: 800;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 0.25rem;
-    }
-    .route .end.pickup  .tag { color: #067647; }
+    .route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: stretch; margin-top: 0.6rem; }
+    .route .end { padding: 0.7rem 0.85rem; background: #f9fcff; border: 1px solid var(--g2); border-radius: 12px; }
+    .route .end.pickup { border-left: 4px solid var(--green); }
+    .route .end.dropoff { border-left: 4px solid var(--red); }
+    .route .tag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.25rem; }
+    .route .end.pickup .tag { color: #067647; }
     .route .end.dropoff .tag { color: #b42318; }
-    .route .state {
-      font-size: 0.88rem; font-weight: 700; color: var(--navy-3);
-      text-transform: capitalize;
-    }
-    .route .city {
-      font-size: 0.78rem; color: var(--g4); margin-top: 0.1rem;
-    }
-    .route .arrow {
-      display: flex; align-items: center; justify-content: center;
-      color: var(--blue); font-weight: 800; font-size: 1.1rem;
-    }
+    .route .state { font-size: 0.88rem; font-weight: 700; color: var(--navy-3); text-transform: capitalize; }
+    .route .city { font-size: 0.78rem; color: var(--g4); margin-top: 0.1rem; }
+    .route .arrow { display: flex; align-items: center; justify-content: center; color: var(--blue); font-weight: 800; font-size: 1.1rem; }
 
-    .booking-foot {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap;
-      font-size: 0.75rem; color: var(--g3);
-    }
+    .booking-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--g3); }
 
-    /* =================== BADGES =================== */
     .badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
       padding: 0.32rem 0.75rem; border-radius: 40px;
-      font-size: 0.7rem; font-weight: 800;
-      letter-spacing: 0.06em; text-transform: uppercase;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
     }
-    .badge.pending  { background: #fff6e5; color: #b54708; }
+    .badge.pending { background: #fff6e5; color: #b54708; }
     .badge.approved { background: #e7f8ef; color: #067647; }
     .badge.rejected { background: #fdecec; color: #b42318; }
-    .badge .dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: currentColor;
-    }
-    .badge.pending .dot { animation: pulse 1.6s infinite; }
 
-    /* =================== EMPTY STATE =================== */
-    .empty-state {
-      text-align: center; padding: 3rem 1rem; color: var(--g3);
-    }
-    .empty-state .icon {
-      font-size: 3rem; margin-bottom: 0.9rem; opacity: 0.55;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-8px); }
-    }
-    .empty-state .title {
-      font-size: 1rem; font-weight: 700; color: var(--navy-3);
-      margin-bottom: 0.35rem;
-    }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--g3); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 0.9rem; opacity: 0.55; }
+    .empty-state .title { font-size: 1rem; font-weight: 700; color: var(--navy-3); margin-bottom: 0.35rem; }
     .empty-state .sub { font-size: 0.85rem; }
 
-    /* =================== PROFILE =================== */
     .profile-card {
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
-      color: #fff; border-radius: 20px;
-      padding: 1.5rem; margin-bottom: 1.5rem;
-      display: flex; align-items: center; gap: 1.25rem;
-      position: relative; overflow: hidden;
-    }
-    .profile-card::before {
-      content: ""; position: absolute; top: -40%; right: -10%;
-      width: 260px; height: 260px;
-      background: radial-gradient(circle, rgba(45, 156, 219, 0.35) 0%, transparent 70%);
-      border-radius: 50%; pointer-events: none;
+      color: #fff; border-radius: 20px; padding: 1.5rem;
+      margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.25rem;
     }
     .profile-card .big-avatar {
       width: 68px; height: 68px; border-radius: 20px;
       background: linear-gradient(135deg, var(--blue) 0%, var(--blue-2) 100%);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 800; color: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 10px 24px -8px rgba(45, 156, 219, 0.7);
-      position: relative; z-index: 2;
+      font-size: 1.5rem; font-weight: 800; color: #fff; flex-shrink: 0;
     }
-    .profile-card .info { position: relative; z-index: 2; min-width: 0; }
-    .profile-card .info .name {
-      font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em;
-      margin-bottom: 0.15rem;
-    }
-    .profile-card .info .email {
-      font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);
-      word-break: break-all;
-    }
+    .profile-card .info .name { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.15rem; }
+    .profile-card .info .email { font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); word-break: break-all; }
     .profile-card .info .member-since {
-      display: inline-block;
-      margin-top: 0.6rem;
-      font-size: 0.7rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--blue-soft);
-      background: rgba(125, 201, 240, 0.15);
+      display: inline-block; margin-top: 0.6rem;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--blue-soft); background: rgba(125, 201, 240, 0.15);
       padding: 0.25rem 0.65rem; border-radius: 40px;
-      border: 1px solid rgba(125, 201, 240, 0.25);
     }
+    .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .profile-item { background: #f9fcff; border: 1px solid var(--g2); border-radius: 14px; padding: 0.9rem 1rem; }
+    .profile-item .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g3); margin-bottom: 0.3rem; }
+    .profile-item .v { font-size: 0.95rem; font-weight: 700; color: var(--navy-3); word-break: break-all; }
 
-    .profile-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.75rem; margin-bottom: 1.5rem;
-    }
-    .profile-item {
-      background: #f9fcff; border: 1px solid var(--g2);
-      border-radius: 14px; padding: 0.9rem 1rem;
-      transition: all 0.2s;
-    }
-    .profile-item:hover { border-color: var(--blue-soft); background: #eaf6ff; }
-    .profile-item .k {
-      font-size: 0.68rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--g3); margin-bottom: 0.3rem;
-    }
-    .profile-item .v {
-      font-size: 0.95rem; font-weight: 700; color: var(--navy-3);
-      word-break: break-all;
-    }
-
-    /* =================== TOASTS =================== */
     .toast-container {
       position: fixed; top: 1.25rem; right: 1.25rem; z-index: 9999;
       display: flex; flex-direction: column; gap: 0.75rem;
@@ -761,21 +422,10 @@
       display: flex; align-items: flex-start; gap: 0.85rem;
       padding: 1rem 1.1rem;
       background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(14px); border-radius: 18px;
-      box-shadow: 0 20px 45px -12px rgba(10, 28, 43, 0.35),
-                  0 0 0 1px rgba(10, 28, 43, 0.06);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px -12px rgba(10, 28, 43, 0.35);
       border-left: 4px solid var(--blue);
-      pointer-events: auto;
-      animation: toastIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-      position: relative; overflow: hidden;
-    }
-    .toast.removing { animation: toastOut 0.35s ease forwards; }
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateX(120%) scale(0.95); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
-    }
-    @keyframes toastOut {
-      to { opacity: 0; transform: translateX(120%) scale(0.95); }
+      pointer-events: auto; position: relative; overflow: hidden;
     }
     .toast-icon {
       flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
@@ -786,136 +436,42 @@
     .toast-body { flex: 1; min-width: 0; }
     .toast-title { font-size: 0.9rem; font-weight: 700; color: var(--navy-3); margin-bottom: 0.15rem; }
     .toast-message { font-size: 0.83rem; color: var(--g4); line-height: 1.4; word-wrap: break-word; }
-    .toast-close {
-      background: none; border: none; color: #9eb4c4; font-size: 1.1rem;
-      cursor: pointer; padding: 0 0.2rem; line-height: 1;
-    }
-    .toast-close:hover { color: var(--g5); }
-    .toast-progress {
-      position: absolute; bottom: 0; left: 0; height: 3px;
-      background: var(--blue); width: 100%;
-      transform-origin: left;
-      animation: toastProgress linear forwards;
-    }
-    @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    .toast-close { background: none; border: none; color: #9eb4c4; font-size: 1.1rem; cursor: pointer; line-height: 1; }
     .toast.success { border-left-color: var(--green); }
     .toast.success .toast-icon { background: linear-gradient(135deg, #22c55e 0%, var(--green) 100%); }
-    .toast.success .toast-progress { background: #22c55e; }
     .toast.error { border-left-color: var(--red); }
     .toast.error .toast-icon { background: linear-gradient(135deg, #ef4444 0%, var(--red) 100%); }
-    .toast.error .toast-progress { background: #ef4444; }
     .toast.warning { border-left-color: var(--amber); }
     .toast.warning .toast-icon { background: linear-gradient(135deg, #fbbf24 0%, var(--amber) 100%); }
-    .toast.warning .toast-progress { background: var(--amber); }
 
-    /* =================== CONFETTI =================== */
-    .confetti-piece {
-      position: fixed; width: 10px; height: 10px;
-      z-index: 9998; pointer-events: none;
-      animation: confettiFall 3s linear forwards;
-    }
-    @keyframes confettiFall {
-      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
-
-    /* ============================================================
-       PAGE TRANSITION OVERLAY
-       ============================================================ */
-    #pageTransition {
-      position: fixed; inset: 0;
-      z-index: 99999;
-      background: linear-gradient(145deg, #0a1c2b 0%, #12354d 100%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 1.5rem;
-      pointer-events: all;
-      opacity: 1;
-      transition: opacity 0.55s ease, visibility 0.55s ease;
-    }
-    #pageTransition.hide {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    #pageTransition .pt-logo {
-      font-size: 1.35rem; font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #fff;
-      display: flex; align-items: baseline; gap: 0.4rem;
-      animation: ptFadeUp 0.7s ease both;
-    }
-    #pageTransition .pt-logo span {
-      font-weight: 300; color: #7dc9f0;
-    }
-    #pageTransition .pt-bar {
-      width: 180px; height: 3px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 40px;
-      overflow: hidden;
-      animation: ptFadeUp 0.7s ease 0.15s both;
-    }
-    #pageTransition .pt-bar-fill {
-      width: 40%; height: 100%;
-      background: linear-gradient(90deg, transparent, #7dc9f0, transparent);
-      border-radius: 40px;
-      animation: ptSlide 1.1s ease-in-out infinite;
-    }
-    @keyframes ptFadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes ptSlide {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(320%); }
-    }
-
-    /* =================== RESPONSIVE =================== */
     @media (max-width: 720px) {
       .topbar { padding: 0.8rem 1rem; }
       .brand { font-size: 1rem; }
       .user-chip span { display: none; }
-      .user-chip .caret { display: none; }
       .container { padding: 2rem 1rem 3rem; }
       .dash-card { padding: 1.5rem 1.15rem; border-radius: 22px; }
       .tab { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
       .tab .label { display: none; }
-      .tab { gap: 0.2rem; }
-      .steps { padding: 0; }
-      .step-dot { width: 30px; height: 30px; font-size: 0.78rem; }
       .vehicle-grid { grid-template-columns: repeat(2, 1fr); }
-      .toast-container {
-        top: 0.75rem; right: 0.75rem; left: 0.75rem; max-width: none;
-      }
+      .toast-container { top: 0.75rem; right: 0.75rem; left: 0.75rem; max-width: none; }
       .profile-card { flex-direction: column; text-align: center; }
       .route { grid-template-columns: 1fr; }
       .route .arrow { transform: rotate(90deg); }
-    }
-
-    @media (max-width: 380px) {
-      .vehicle-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- PAGE TRANSITION OVERLAY -->
-  <div id="pageTransition">
-    <div class="pt-logo">Dominion <span>Transport</span></div>
-    <div class="pt-bar"><div class="pt-bar-fill"></div></div>
-  </div>
-
   <div class="page-bg">
-    <img src="{{ url_for('static', filename='DOMINION.png') }}" alt="Dominion Transport">
+    <img src="{{ url_for('static', filename='DOMINION.png') }}" alt="">
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- =================== TOPBAR =================== -->
   <div class="topbar">
     <div class="brand">
       Dominion <span class="accent">Transport</span>
-      <span class="dot" title="Online"></span>
+      <span class="dot"></span>
     </div>
     <div class="topbar-right">
       <div class="user-menu">
@@ -931,21 +487,15 @@
             <div class="name">{{ user['firstname'] }} {{ user['lastname'] }}</div>
             <div class="email">{{ user['email'] }}</div>
           </div>
-          <a href="#" onclick="switchTab('profile'); closeDropdown(); return false;">
-            👤 My profile
-          </a>
-          <a href="{{ url_for('logout') }}" class="danger">
-            🚪 Log out
-          </a>
+          <a href="#" onclick="switchTab('profile'); closeDropdown(); return false;">👤 My profile</a>
+          <a href="{{ url_for('logout') }}" class="danger">🚪 Log out</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- =================== MAIN =================== -->
   <div class="container">
 
-    <!-- HERO -->
     <div class="hero">
       <h1 id="greeting">Hello, <span class="name">{{ user['firstname'] }}</span> 👋</h1>
       <p>Ready to book your next trip with Dominion?</p>
@@ -955,56 +505,33 @@
       </div>
     </div>
 
-    <!-- STATS -->
     {% set total_count = bookings|length if bookings else 0 %}
     {% set pending_count = bookings|selectattr('status','equalto','pending')|list|length if bookings else 0 %}
     {% set approved_count = bookings|selectattr('status','equalto','approved')|list|length if bookings else 0 %}
     {% set total_spent = (bookings|selectattr('status','equalto','approved')|map(attribute='total_price')|sum) if bookings else 0 %}
 
     <div class="stats">
-      <div class="stat">
-        <div class="label">Total Bookings</div>
-        <div class="value accent">{{ total_count }}</div>
-      </div>
-      <div class="stat">
-        <div class="label">Pending</div>
-        <div class="value warn">{{ pending_count }}</div>
-      </div>
-      <div class="stat">
-        <div class="label">Approved</div>
-        <div class="value good">{{ approved_count }}</div>
-      </div>
-      <div class="stat">
-        <div class="label">Amount Spent</div>
-        <div class="value">₦{{ '{:,}'.format(total_spent) }}</div>
-      </div>
+      <div class="stat"><div class="label">Total Bookings</div><div class="value accent">{{ total_count }}</div></div>
+      <div class="stat"><div class="label">Pending</div><div class="value warn">{{ pending_count }}</div></div>
+      <div class="stat"><div class="label">Approved</div><div class="value good">{{ approved_count }}</div></div>
+      <div class="stat"><div class="label">Amount Spent</div><div class="value">₦{{ '{:,}'.format(total_spent) }}</div></div>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
-      <button class="tab active" data-tab="new">
-        📝 <span class="label">New Booking</span>
-      </button>
-      <button class="tab" data-tab="list">
-        📋 <span class="label">My Bookings</span>
+      <button class="tab active" data-tab="new">📝 <span class="label">New Booking</span></button>
+      <button class="tab" data-tab="list">📋 <span class="label">My Bookings</span>
         {% if total_count > 0 %}<span class="count">{{ total_count }}</span>{% endif %}
       </button>
-      <button class="tab" data-tab="profile">
-        👤 <span class="label">Profile</span>
-      </button>
+      <button class="tab" data-tab="profile">👤 <span class="label">Profile</span></button>
     </div>
 
-    <!-- =================== MAIN CARD =================== -->
     <div class="dash-card">
 
-      <!-- =========================================== -->
-      <!-- TAB 1 — NEW BOOKING                          -->
-      <!-- =========================================== -->
+      <!-- NEW BOOKING -->
       <div class="tab-panel active" id="tab-new">
         <div class="section-title">Book a Service</div>
         <div class="section-sub">Pick your vehicle, task, pickup and drop-off. We'll show the price.</div>
 
-        <!-- PROGRESS STEPS -->
         <div class="steps">
           <div class="step-dot active" id="step1">1</div>
           <div class="step-line" id="line1"></div>
@@ -1017,56 +544,22 @@
 
         <form id="bookingForm" onsubmit="submitBooking(event)">
 
-          <!-- STEP 1 — VEHICLE CARDS -->
-          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase;
-                        letter-spacing:0.05em; color:var(--g5); display:block;
-                        margin-bottom:0.5rem;">
+          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--g5); display:block; margin-bottom:0.5rem;">
             1. Vehicle Type
           </label>
           <input type="hidden" id="vehicle" name="vehicle" required>
 
           <div class="vehicle-grid" id="vehicleGrid">
-            <div class="v-card" data-value="bike" data-price="5000">
-              <span class="emoji">🏍️</span>
-              <span class="name">Bike</span>
-              <span class="price">₦5,000</span>
-            </div>
-            <div class="v-card" data-value="car" data-price="10000">
-              <span class="emoji">🚗</span>
-              <span class="name">Car</span>
-              <span class="price">₦10,000</span>
-            </div>
-            <div class="v-card" data-value="suv" data-price="15000">
-              <span class="emoji">🚙</span>
-              <span class="name">SUV</span>
-              <span class="price">₦15,000</span>
-            </div>
-            <div class="v-card" data-value="van" data-price="18000">
-              <span class="emoji">🚐</span>
-              <span class="name">Van</span>
-              <span class="price">₦18,000</span>
-            </div>
-            <div class="v-card" data-value="truck-small" data-price="25000">
-              <span class="emoji">🚚</span>
-              <span class="name">Small Truck</span>
-              <span class="price">₦25,000</span>
-            </div>
-            <div class="v-card" data-value="truck-large" data-price="40000">
-              <span class="emoji">🚛</span>
-              <span class="name">Large Truck</span>
-              <span class="price">₦40,000</span>
-            </div>
-            <div class="v-card" data-value="trailer" data-price="60000">
-              <span class="emoji">🚛</span>
-              <span class="name">Trailer</span>
-              <span class="price">₦60,000</span>
-            </div>
+            <div class="v-card" data-value="bike" data-price="5000"><span class="emoji">🏍️</span><span class="name">Bike</span><span class="price">₦5,000</span></div>
+            <div class="v-card" data-value="car" data-price="10000"><span class="emoji">🚗</span><span class="name">Car</span><span class="price">₦10,000</span></div>
+            <div class="v-card" data-value="suv" data-price="15000"><span class="emoji">🚙</span><span class="name">SUV</span><span class="price">₦15,000</span></div>
+            <div class="v-card" data-value="van" data-price="18000"><span class="emoji">🚐</span><span class="name">Van</span><span class="price">₦18,000</span></div>
+            <div class="v-card" data-value="truck-small" data-price="25000"><span class="emoji">🚚</span><span class="name">Small Truck</span><span class="price">₦25,000</span></div>
+            <div class="v-card" data-value="truck-large" data-price="40000"><span class="emoji">🚛</span><span class="name">Large Truck</span><span class="price">₦40,000</span></div>
+            <div class="v-card" data-value="trailer" data-price="60000"><span class="emoji">🚛</span><span class="name">Trailer</span><span class="price">₦60,000</span></div>
           </div>
 
-          <!-- STEP 2 — TASK PILLS -->
-          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase;
-                        letter-spacing:0.05em; color:var(--g5); display:block;
-                        margin-bottom:0.5rem;">
+          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--g5); display:block; margin-bottom:0.5rem;">
             2. Task Type
           </label>
           <input type="hidden" id="task" name="task" required>
@@ -1081,19 +574,15 @@
           <div class="other-task" id="otherTaskBox">
             <div class="input-group" style="margin-bottom: 0;">
               <label for="otherTask">Describe what you want to do</label>
-              <textarea id="otherTask" name="otherTask"
-                placeholder="e.g. Moving furniture from Abuja to Lagos…"></textarea>
+              <textarea id="otherTask" name="otherTask" placeholder="e.g. Moving furniture from Abuja to Lagos…"></textarea>
             </div>
           </div>
 
-          <!-- STEP 3 — PICKUP + DROP-OFF -->
-          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase;
-                        letter-spacing:0.05em; color:var(--g5); display:block;
-                        margin-bottom:0.5rem;">
+          <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--g5); display:block; margin-bottom:0.5rem;">
             3. Pickup &amp; Drop-off
           </label>
 
-          <!-- PICKUP BLOCK -->
+          <!-- PICKUP -->
           <div class="block pickup">
             <div class="block-head">
               <span class="pill">Pickup</span>
@@ -1105,73 +594,69 @@
                 <label for="pickupState">Pickup State</label>
                 <select id="pickupState" name="pickupState" required onchange="updatePrice()">
                   <option value="" disabled selected>Select pickup state</option>
-                  <option value="abia"        data-price="15000">Abia — ₦15,000</option>
-                  <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
-                  <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
-                  <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
-                  <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
-                  <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
-                  <option value="benue"       data-price="24000">Benue — ₦24,000</option>
-                  <option value="borno"       data-price="35000">Borno — ₦35,000</option>
-                  <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
-                  <option value="delta"       data-price="17000">Delta — ₦17,000</option>
-                  <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
-                  <option value="edo"         data-price="15000">Edo — ₦15,000</option>
-                  <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
-                  <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
-                  <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
-                  <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
-                  <option value="imo"         data-price="17000">Imo — ₦17,000</option>
-                  <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
-                  <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
-                  <option value="kano"        data-price="26000">Kano — ₦26,000</option>
-                  <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
-                  <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
-                  <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
-                  <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
-                  <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
-                  <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
-                  <option value="niger"       data-price="22000">Niger — ₦22,000</option>
-                  <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
-                  <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
-                  <option value="osun"        data-price="14000">Osun — ₦14,000</option>
-                  <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
-                  <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
-                  <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
-                  <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
-                  <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
-                  <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
-                  <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
+                  <option value="abia">Abia — ₦15,000</option>
+                  <option value="adamawa">Adamawa — ₦28,000</option>
+                  <option value="akwa-ibom">Akwa Ibom — ₦22,000</option>
+                  <option value="anambra">Anambra — ₦16,000</option>
+                  <option value="bauchi">Bauchi — ₦27,000</option>
+                  <option value="bayelsa">Bayelsa — ₦23,000</option>
+                  <option value="benue">Benue — ₦24,000</option>
+                  <option value="borno">Borno — ₦35,000</option>
+                  <option value="cross-river">Cross River — ₦21,000</option>
+                  <option value="delta">Delta — ₦17,000</option>
+                  <option value="ebonyi">Ebonyi — ₦18,000</option>
+                  <option value="edo">Edo — ₦15,000</option>
+                  <option value="ekiti">Ekiti — ₦14,000</option>
+                  <option value="enugu">Enugu — ₦16,000</option>
+                  <option value="fct">FCT - Abuja — ₦10,000</option>
+                  <option value="gombe">Gombe — ₦29,000</option>
+                  <option value="imo">Imo — ₦17,000</option>
+                  <option value="jigawa">Jigawa — ₦30,000</option>
+                  <option value="kaduna">Kaduna — ₦25,000</option>
+                  <option value="kano">Kano — ₦26,000</option>
+                  <option value="katsina">Katsina — ₦29,000</option>
+                  <option value="kebbi">Kebbi — ₦31,000</option>
+                  <option value="kogi">Kogi — ₦13,000</option>
+                  <option value="kwara">Kwara — ₦14,000</option>
+                  <option value="lagos">Lagos — ₦8,000</option>
+                  <option value="nasarawa">Nasarawa — ₦20,000</option>
+                  <option value="niger">Niger — ₦22,000</option>
+                  <option value="ogun">Ogun — ₦10,000</option>
+                  <option value="ondo">Ondo — ₦13,000</option>
+                  <option value="osun">Osun — ₦14,000</option>
+                  <option value="oyo">Oyo — ₦12,000</option>
+                  <option value="plateau">Plateau — ₦25,000</option>
+                  <option value="rivers">Rivers — ₦18,000</option>
+                  <option value="sokoto">Sokoto — ₦32,000</option>
+                  <option value="taraba">Taraba — ₦29,000</option>
+                  <option value="yobe">Yobe — ₦34,000</option>
+                  <option value="zamfara">Zamfara — ₦33,000</option>
                 </select>
               </div>
               <div class="input-group">
                 <label for="pickupCity">Pickup City / Town</label>
-                <input type="text" id="pickupCity" name="pickupCity"
-                       placeholder="e.g. Ikeja" required>
+                <input type="text" id="pickupCity" name="pickupCity" placeholder="e.g. Ikeja" required>
               </div>
             </div>
 
             <div class="input-group">
               <label for="pickupAddress">Pickup Address</label>
-              <textarea id="pickupAddress" name="pickupAddress"
-                        placeholder="Street, building, landmark" required></textarea>
+              <textarea id="pickupAddress" name="pickupAddress" placeholder="Street, building, landmark" required></textarea>
             </div>
 
             <div class="grid-2">
               <div class="input-group">
                 <label for="pickupContact">Contact Name at Pickup</label>
-                <input type="text" id="pickupContact" name="pickupContact"
-                       placeholder="e.g. Chidi Okafor" required>
+                <input type="text" id="pickupContact" name="pickupContact" placeholder="e.g. Chidi Okafor" required>
               </div>
               <div class="input-group">
                 <label for="pickupPhone">Contact Phone</label>
-                <input type="tel" id="pickupPhone" name="pickupPhone"
-                       placeholder="e.g. 08012345678" required>
+                <input type="tel" id="pickupPhone" name="pickupPhone" placeholder="e.g. 08012345678" required>
               </div>
             </div>
           </div>
 
-          <!-- DROP-OFF BLOCK -->
+          <!-- DROP-OFF -->
           <div class="block dropoff">
             <div class="block-head">
               <span class="pill">Drop-off</span>
@@ -1183,136 +668,103 @@
                 <label for="dropoffState">Drop-off State</label>
                 <select id="dropoffState" name="dropoffState" required onchange="updatePrice()">
                   <option value="" disabled selected>Select drop-off state</option>
-                  <option value="abia"        data-price="15000">Abia — ₦15,000</option>
-                  <option value="adamawa"     data-price="28000">Adamawa — ₦28,000</option>
-                  <option value="akwa-ibom"   data-price="22000">Akwa Ibom — ₦22,000</option>
-                  <option value="anambra"     data-price="16000">Anambra — ₦16,000</option>
-                  <option value="bauchi"      data-price="27000">Bauchi — ₦27,000</option>
-                  <option value="bayelsa"     data-price="23000">Bayelsa — ₦23,000</option>
-                  <option value="benue"       data-price="24000">Benue — ₦24,000</option>
-                  <option value="borno"       data-price="35000">Borno — ₦35,000</option>
-                  <option value="cross-river" data-price="21000">Cross River — ₦21,000</option>
-                  <option value="delta"       data-price="17000">Delta — ₦17,000</option>
-                  <option value="ebonyi"      data-price="18000">Ebonyi — ₦18,000</option>
-                  <option value="edo"         data-price="15000">Edo — ₦15,000</option>
-                  <option value="ekiti"       data-price="14000">Ekiti — ₦14,000</option>
-                  <option value="enugu"       data-price="16000">Enugu — ₦16,000</option>
-                  <option value="fct"         data-price="10000">FCT - Abuja — ₦10,000</option>
-                  <option value="gombe"       data-price="29000">Gombe — ₦29,000</option>
-                  <option value="imo"         data-price="17000">Imo — ₦17,000</option>
-                  <option value="jigawa"      data-price="30000">Jigawa — ₦30,000</option>
-                  <option value="kaduna"      data-price="25000">Kaduna — ₦25,000</option>
-                  <option value="kano"        data-price="26000">Kano — ₦26,000</option>
-                  <option value="katsina"     data-price="29000">Katsina — ₦29,000</option>
-                  <option value="kebbi"       data-price="31000">Kebbi — ₦31,000</option>
-                  <option value="kogi"        data-price="13000">Kogi — ₦13,000</option>
-                  <option value="kwara"       data-price="14000">Kwara — ₦14,000</option>
-                  <option value="lagos"       data-price="8000">Lagos — ₦8,000</option>
-                  <option value="nasarawa"    data-price="20000">Nasarawa — ₦20,000</option>
-                  <option value="niger"       data-price="22000">Niger — ₦22,000</option>
-                  <option value="ogun"        data-price="10000">Ogun — ₦10,000</option>
-                  <option value="ondo"        data-price="13000">Ondo — ₦13,000</option>
-                  <option value="osun"        data-price="14000">Osun — ₦14,000</option>
-                  <option value="oyo"         data-price="12000">Oyo — ₦12,000</option>
-                  <option value="plateau"     data-price="25000">Plateau — ₦25,000</option>
-                  <option value="rivers"      data-price="18000">Rivers — ₦18,000</option>
-                  <option value="sokoto"      data-price="32000">Sokoto — ₦32,000</option>
-                  <option value="taraba"      data-price="29000">Taraba — ₦29,000</option>
-                  <option value="yobe"        data-price="34000">Yobe — ₦34,000</option>
-                  <option value="zamfara"     data-price="33000">Zamfara — ₦33,000</option>
+                  <option value="abia">Abia — ₦15,000</option>
+                  <option value="adamawa">Adamawa — ₦28,000</option>
+                  <option value="akwa-ibom">Akwa Ibom — ₦22,000</option>
+                  <option value="anambra">Anambra — ₦16,000</option>
+                  <option value="bauchi">Bauchi — ₦27,000</option>
+                  <option value="bayelsa">Bayelsa — ₦23,000</option>
+                  <option value="benue">Benue — ₦24,000</option>
+                  <option value="borno">Borno — ₦35,000</option>
+                  <option value="cross-river">Cross River — ₦21,000</option>
+                  <option value="delta">Delta — ₦17,000</option>
+                  <option value="ebonyi">Ebonyi — ₦18,000</option>
+                  <option value="edo">Edo — ₦15,000</option>
+                  <option value="ekiti">Ekiti — ₦14,000</option>
+                  <option value="enugu">Enugu — ₦16,000</option>
+                  <option value="fct">FCT - Abuja — ₦10,000</option>
+                  <option value="gombe">Gombe — ₦29,000</option>
+                  <option value="imo">Imo — ₦17,000</option>
+                  <option value="jigawa">Jigawa — ₦30,000</option>
+                  <option value="kaduna">Kaduna — ₦25,000</option>
+                  <option value="kano">Kano — ₦26,000</option>
+                  <option value="katsina">Katsina — ₦29,000</option>
+                  <option value="kebbi">Kebbi — ₦31,000</option>
+                  <option value="kogi">Kogi — ₦13,000</option>
+                  <option value="kwara">Kwara — ₦14,000</option>
+                  <option value="lagos">Lagos — ₦8,000</option>
+                  <option value="nasarawa">Nasarawa — ₦20,000</option>
+                  <option value="niger">Niger — ₦22,000</option>
+                  <option value="ogun">Ogun — ₦10,000</option>
+                  <option value="ondo">Ondo — ₦13,000</option>
+                  <option value="osun">Osun — ₦14,000</option>
+                  <option value="oyo">Oyo — ₦12,000</option>
+                  <option value="plateau">Plateau — ₦25,000</option>
+                  <option value="rivers">Rivers — ₦18,000</option>
+                  <option value="sokoto">Sokoto — ₦32,000</option>
+                  <option value="taraba">Taraba — ₦29,000</option>
+                  <option value="yobe">Yobe — ₦34,000</option>
+                  <option value="zamfara">Zamfara — ₦33,000</option>
                 </select>
               </div>
               <div class="input-group">
                 <label for="dropoffCity">Drop-off City / Town</label>
-                <input type="text" id="dropoffCity" name="dropoffCity"
-                       placeholder="e.g. Port Harcourt" required>
+                <input type="text" id="dropoffCity" name="dropoffCity" placeholder="e.g. Port Harcourt" required>
               </div>
             </div>
 
             <div class="input-group">
               <label for="dropoffAddress">Drop-off Address</label>
-              <textarea id="dropoffAddress" name="dropoffAddress"
-                        placeholder="Street, building, landmark" required></textarea>
+              <textarea id="dropoffAddress" name="dropoffAddress" placeholder="Street, building, landmark" required></textarea>
             </div>
 
             <div class="grid-2">
               <div class="input-group">
                 <label for="dropoffContact">Contact Name at Drop-off</label>
-                <input type="text" id="dropoffContact" name="dropoffContact"
-                       placeholder="e.g. Ngozi Bello" required>
+                <input type="text" id="dropoffContact" name="dropoffContact" placeholder="e.g. Ngozi Bello" required>
               </div>
               <div class="input-group">
                 <label for="dropoffPhone">Contact Phone</label>
-                <input type="tel" id="dropoffPhone" name="dropoffPhone"
-                       placeholder="e.g. 08087654321" required>
+                <input type="tel" id="dropoffPhone" name="dropoffPhone" placeholder="e.g. 08087654321" required>
               </div>
             </div>
           </div>
 
-          <!-- PRICE BREAKDOWN -->
           <div class="price-box" id="priceBox">
-            <div class="price-row" id="rowVehicle">
-              <span class="label">Vehicle</span>
-              <span class="value" id="vehiclePrice">—</span>
-            </div>
-            <div class="price-row" id="rowState">
-              <span class="label">Interstate distance (highest state)</span>
-              <span class="value" id="statePrice">—</span>
-            </div>
+            <div class="price-row" id="rowVehicle"><span class="label">Vehicle</span><span class="value" id="vehiclePrice">—</span></div>
+            <div class="price-row" id="rowState"><span class="label">Interstate distance (highest state)</span><span class="value" id="statePrice">—</span></div>
             <div class="price-divider"></div>
-            <div class="price-total">
-              <span class="label">Total</span>
-              <span class="value" id="totalPrice">₦0</span>
-            </div>
+            <div class="price-total"><span class="label">Total</span><span class="value" id="totalPrice">₦0</span></div>
           </div>
 
-          <!-- PROCEED -->
-          <button type="button" class="primary-btn accent" id="proceedBtn"
-                  onclick="showPaymentPanel()" disabled>
+          <button type="button" class="primary-btn accent" id="proceedBtn" onclick="showPaymentPanel()" disabled>
             💳 Proceed to Payment
           </button>
 
-          <!-- PAYMENT PANEL -->
           <div class="pay-panel" id="payPanel">
 
             <div class="bank-info">
               <h4>💳 Pay to Dominion Transport Solutions</h4>
-              <div class="line">
-                <span>Bank</span>
-                <span>{{ company_bank.bank_name }}</span>
-              </div>
+              <div class="line"><span>Bank</span><span>{{ company_bank.bank_name }}</span></div>
               <div class="line">
                 <span>Account Number</span>
-                <span>
-                  <span id="acctNum">{{ company_bank.account_number }}</span>
-                  <button type="button" class="copy-btn" onclick="copyAcct()">
-                    📋 Copy
-                  </button>
-                </span>
+                <span><span id="acctNum">{{ company_bank.account_number }}</span>
+                  <button type="button" class="copy-btn" onclick="copyAcct()">📋 Copy</button></span>
               </div>
-              <div class="line">
-                <span>Account Name</span>
-                <span>{{ company_bank.account_name }}</span>
-              </div>
-              <div class="line">
-                <span>Amount</span>
-                <span class="amount" id="payAmount">₦0</span>
-              </div>
-              <div class="copy-hint">
-                Send the exact amount above using your bank app or USSD.
-                Then fill the form below with your transaction details.
-              </div>
+              <div class="line"><span>Account Name</span><span>{{ company_bank.account_name }}</span></div>
+              <div class="line"><span>Amount</span><span class="amount" id="payAmount">₦0</span></div>
+              <div class="copy-hint">Send the exact amount above, then fill the form below with your transaction details.</div>
             </div>
 
             <div class="input-group">
-              <label for="paymentBank">Your Bank <span class="hint">(bank you paid from)</span></label>
+              <label for="paymentBank">Your Bank (bank you paid from)</label>
               <select id="paymentBank" name="paymentBank" required>
                 <option value="" disabled selected>Select your bank</option>
                 <option value="access">Access Bank</option>
                 <option value="citibank">Citibank Nigeria</option>
                 <option value="ecobank">Ecobank Nigeria</option>
                 <option value="fidelity">Fidelity Bank</option>
-                <option value="fcmb">First City Monument Bank (FCMB)</option>
+                <option value="fcmb">FCMB</option>
                 <option value="firstbank">First Bank of Nigeria</option>
                 <option value="gtbank">Guaranty Trust Bank (GTB)</option>
                 <option value="heritage">Heritage Bank</option>
@@ -1325,7 +777,7 @@
                 <option value="stanbic">Stanbic IBTC Bank</option>
                 <option value="standard">Standard Chartered</option>
                 <option value="sterling">Sterling Bank</option>
-                <option value="uba">United Bank for Africa (UBA)</option>
+                <option value="uba">UBA</option>
                 <option value="union">Union Bank</option>
                 <option value="unity">Unity Bank</option>
                 <option value="wema">Wema Bank</option>
@@ -1335,17 +787,13 @@
 
             <div class="input-group">
               <label for="paymentReference">Transaction Reference / Session ID</label>
-              <input type="text" id="paymentReference" name="paymentReference"
-                     placeholder="e.g. 12345678901234567890 or the ref from your bank SMS"
-                     required>
+              <input type="text" id="paymentReference" name="paymentReference" placeholder="From your bank SMS" required>
             </div>
 
             <div class="input-group">
-              <label for="paymentReceipt">Upload Payment Receipt / Screenshot</label>
+              <label for="paymentReceipt">Upload Payment Receipt</label>
               <label class="file-upload" for="paymentReceipt" id="receiptUploader">
-                <input type="file" id="paymentReceipt" name="paymentReceipt"
-                       accept="image/*,.pdf" required
-                       onchange="showReceiptName(event)">
+                <input type="file" id="paymentReceipt" name="paymentReceipt" accept="image/*,.pdf" required onchange="showReceiptName(event)">
                 <div class="upload-icon">🧾</div>
                 <div class="upload-text">Tap to upload your receipt</div>
                 <div class="upload-hint">JPG, PNG or PDF · max 5MB</div>
@@ -1353,21 +801,14 @@
               </label>
             </div>
 
-            <button type="submit" class="primary-btn" id="submitBtn">
-              ✅ I have paid — Submit for Verification
-            </button>
-
-            <button type="button" class="ghost-btn" onclick="hidePaymentPanel()">
-              ← Back to trip details
-            </button>
+            <button type="submit" class="primary-btn" id="submitBtn">✅ I have paid — Submit for Verification</button>
+            <button type="button" class="ghost-btn" onclick="hidePaymentPanel()">← Back to trip details</button>
           </div>
 
         </form>
       </div>
 
-      <!-- =========================================== -->
-      <!-- TAB 2 — MY BOOKINGS                          -->
-      <!-- =========================================== -->
+      <!-- MY BOOKINGS -->
       <div class="tab-panel" id="tab-list">
         <div class="section-title">My Bookings</div>
         <div class="section-sub">Track the status of every trip you've booked.</div>
@@ -1381,22 +822,15 @@
                     <div class="ref">{{ b['reference'] }}</div>
                     <div class="desc">
                       {{ b['vehicle']|replace('-',' ')|title }} ·
-                      {% if b['task'] == 'other' %}
-                        {{ b['other_task'] }}
-                      {% else %}
-                        {{ b['task']|capitalize }}
-                      {% endif %}
+                      {% if b['task'] == 'other' %}{{ b['other_task'] }}{% else %}{{ b['task']|capitalize }}{% endif %}
                     </div>
                   </div>
                   <div>
                     <div class="amount">₦{{ '{:,}'.format(b['total_price']) }}</div>
-                    <span class="badge {{ b['status'] }}">
-                      <span class="dot"></span>{{ b['status'] }}
-                    </span>
+                    <span class="badge {{ b['status'] }}">{{ b['status'] }}</span>
                   </div>
                 </div>
 
-                <!-- PICKUP → DROP-OFF ROUTE -->
                 <div class="route">
                   <div class="end pickup">
                     <div class="tag">● Pickup</div>
@@ -1426,47 +860,28 @@
         </div>
       </div>
 
-      <!-- =========================================== -->
-      <!-- TAB 3 — PROFILE                              -->
-      <!-- =========================================== -->
+      <!-- PROFILE -->
       <div class="tab-panel" id="tab-profile">
         <div class="section-title">My Profile</div>
         <div class="section-sub">Your Dominion Transport account details.</div>
 
         <div class="profile-card">
-          <div class="big-avatar">
-            {{ (user['firstname'][0] ~ user['lastname'][0])|upper }}
-          </div>
+          <div class="big-avatar">{{ (user['firstname'][0] ~ user['lastname'][0])|upper }}</div>
           <div class="info">
             <div class="name">{{ user['firstname'] }} {{ user['lastname'] }}</div>
             <div class="email">{{ user['email'] }}</div>
-            <div class="member-since">
-              ⭐ Member since {{ user['created_at'][:10] }}
-            </div>
+            <div class="member-since">⭐ Member since {{ user['created_at'][:10] }}</div>
           </div>
         </div>
 
         <div class="profile-grid">
-          <div class="profile-item">
-            <div class="k">Username</div>
-            <div class="v">@{{ user['username'] }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="k">Date of birth</div>
-            <div class="v">{{ user['dob'] }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="k">NIN</div>
-            <div class="v">{{ user['nin'][:3] }}****{{ user['nin'][-3:] }}</div>
-          </div>
-          <div class="profile-item">
-            <div class="k">Email</div>
-            <div class="v">{{ user['email'] }}</div>
-          </div>
+          <div class="profile-item"><div class="k">Username</div><div class="v">@{{ user['username'] }}</div></div>
+          <div class="profile-item"><div class="k">Date of birth</div><div class="v">{{ user['dob'] }}</div></div>
+          <div class="profile-item"><div class="k">NIN</div><div class="v">{{ user['nin'][:3] }}****{{ user['nin'][-3:] }}</div></div>
+          <div class="profile-item"><div class="k">Email</div><div class="v">{{ user['email'] }}</div></div>
         </div>
 
-        <a href="{{ url_for('logout') }}" class="primary-btn"
-           style="text-decoration:none; display:flex; margin-top:1rem;">
+        <a href="{{ url_for('logout') }}" class="primary-btn" style="text-decoration:none; display:flex; margin-top:1rem;">
           🚪 Log out
         </a>
       </div>
@@ -1475,16 +890,12 @@
   </div>
 
   <script>
-    /* =================== LIVE CLOCK =================== */
     function updateClock() {
-      const now = new Date();
-      const time = now.toLocaleTimeString('en-GB', { hour12: false });
-      document.getElementById('liveClock').textContent = time;
+      document.getElementById('liveClock').textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    /* =================== TIME-BASED GREETING =================== */
     (function() {
       const hour = new Date().getHours();
       let greet = 'Hello';
@@ -1496,35 +907,21 @@
       el.innerHTML = `${greet}, ${nameEl} 👋`;
     })();
 
-    /* =================== USER DROPDOWN =================== */
     const userChip = document.getElementById('userChip');
     const userDropdown = document.getElementById('userDropdown');
-    if (userChip) {
-      userChip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        userDropdown.classList.toggle('open');
-      });
-      document.addEventListener('click', (e) => {
-        if (!userDropdown.contains(e.target)) userDropdown.classList.remove('open');
-      });
-    }
+    userChip.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('open'); });
+    document.addEventListener('click', (e) => { if (!userDropdown.contains(e.target)) userDropdown.classList.remove('open'); });
     function closeDropdown() { userDropdown.classList.remove('open'); }
 
-    /* =================== TABS =================== */
     function switchTab(name) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      const tab = document.querySelector(`.tab[data-tab="${name}"]`);
-      const panel = document.getElementById('tab-' + name);
-      if (tab) tab.classList.add('active');
-      if (panel) panel.classList.add('active');
+      document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
 
-    /* =================== TOASTS =================== */
     function showToast(title, message, type = 'info', duration = 4000) {
       const container = document.getElementById('toastContainer');
       const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
@@ -1532,54 +929,22 @@
       toast.className = 'toast ' + type;
       toast.innerHTML = `
         <div class="toast-icon">${icons[type] || 'i'}</div>
-        <div class="toast-body">
-          <div class="toast-title">${title}</div>
-          <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" aria-label="Close">×</button>
-        <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
-      `;
+        <div class="toast-body"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>
+        <button class="toast-close">×</button>`;
       container.appendChild(toast);
-      const autoRemove = setTimeout(() => removeToast(toast), duration);
-      toast.querySelector('.toast-close').addEventListener('click', () => {
-        clearTimeout(autoRemove);
-        removeToast(toast);
-      });
-    }
-    function removeToast(toast) {
-      if (toast.classList.contains('removing')) return;
-      toast.classList.add('removing');
-      setTimeout(() => toast.remove(), 350);
+      const autoRemove = setTimeout(() => toast.remove(), duration);
+      toast.querySelector('.toast-close').onclick = () => { clearTimeout(autoRemove); toast.remove(); };
     }
 
-    /* =================== CONFETTI =================== */
-    function burstConfetti() {
-      const colors = ['#2d9cdb', '#16a34a', '#f59e0b', '#dc2626', '#7dc9f0', '#a855f7'];
-      for (let i = 0; i < 60; i++) {
-        const piece = document.createElement('div');
-        piece.className = 'confetti-piece';
-        piece.style.left = Math.random() * 100 + 'vw';
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = Math.random() * 0.4 + 's';
-        piece.style.animationDuration = (2 + Math.random() * 1.5) + 's';
-        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-        document.body.appendChild(piece);
-        setTimeout(() => piece.remove(), 3500);
-      }
-    }
-
-    /* =================== VEHICLE CARDS =================== */
     document.querySelectorAll('.v-card').forEach(card => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.v-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         document.getElementById('vehicle').value = card.dataset.value;
         updatePrice();
-        updateSteps();
       });
     });
 
-    /* =================== TASK PILLS =================== */
     document.querySelectorAll('.t-pill').forEach(pill => {
       pill.addEventListener('click', () => {
         document.querySelectorAll('.t-pill').forEach(p => p.classList.remove('selected'));
@@ -1590,195 +955,119 @@
       });
     });
 
-    /* =================== OTHER TASK =================== */
     function toggleOtherTask() {
-      const taskSelect = document.getElementById('task');
-      const otherBox   = document.getElementById('otherTaskBox');
-      const otherInput = document.getElementById('otherTask');
-      if (taskSelect.value === 'other') {
-        otherBox.classList.add('show');
-        otherInput.required = true;
-        setTimeout(() => otherInput.focus(), 300);
-      } else {
-        otherBox.classList.remove('show');
-        otherInput.required = false;
-        otherInput.value = '';
-      }
+      const task = document.getElementById('task').value;
+      const box = document.getElementById('otherTaskBox');
+      const input = document.getElementById('otherTask');
+      if (task === 'other') { box.classList.add('show'); input.required = true; }
+      else { box.classList.remove('show'); input.required = false; input.value = ''; }
     }
 
-    /* =================== PRICE =================== */
+    const STATE_PRICES = {
+      abia: 15000, adamawa: 28000, 'akwa-ibom': 22000, anambra: 16000,
+      bauchi: 27000, bayelsa: 23000, benue: 24000, borno: 35000,
+      'cross-river': 21000, delta: 17000, ebonyi: 18000, edo: 15000,
+      ekiti: 14000, enugu: 16000, fct: 10000, gombe: 29000, imo: 17000,
+      jigawa: 30000, kaduna: 25000, kano: 26000, katsina: 29000,
+      kebbi: 31000, kogi: 13000, kwara: 14000, lagos: 8000, nasarawa: 20000,
+      niger: 22000, ogun: 10000, ondo: 13000, osun: 14000, oyo: 12000,
+      plateau: 25000, rivers: 18000, sokoto: 32000, taraba: 29000,
+      yobe: 34000, zamfara: 33000
+    };
+
     function updatePrice() {
-      const selectedVehicle = document.querySelector('.v-card.selected');
-      const vehiclePrice = selectedVehicle ? Number(selectedVehicle.dataset.price) : 0;
+      const sel = document.querySelector('.v-card.selected');
+      const vehiclePrice = sel ? Number(sel.dataset.price) : 0;
 
-      const pickupSel  = document.getElementById('pickupState');
-      const dropoffSel = document.getElementById('dropoffState');
-
-      const pickupOpt  = pickupSel.options[pickupSel.selectedIndex];
-      const dropoffOpt = dropoffSel.options[dropoffSel.selectedIndex];
-
-      const pickupPrice  = pickupOpt  ? Number(pickupOpt.getAttribute('data-price'))  || 0 : 0;
-      const dropoffPrice = dropoffOpt ? Number(dropoffOpt.getAttribute('data-price')) || 0 : 0;
-
-      // The interstate distance uses the larger of the two state prices
+      const p = document.getElementById('pickupState').value;
+      const d = document.getElementById('dropoffState').value;
+      const pickupPrice = STATE_PRICES[p] || 0;
+      const dropoffPrice = STATE_PRICES[d] || 0;
       const statePrice = Math.max(pickupPrice, dropoffPrice);
       const total = vehiclePrice + statePrice;
 
-      const priceBox   = document.getElementById('priceBox');
-      const rowVehicle = document.getElementById('rowVehicle');
-      const rowState   = document.getElementById('rowState');
-      const vehEl      = document.getElementById('vehiclePrice');
-      const stEl       = document.getElementById('statePrice');
-      const totEl      = document.getElementById('totalPrice');
-      const payEl      = document.getElementById('payAmount');
-      const proceedBtn = document.getElementById('proceedBtn');
+      document.getElementById('vehiclePrice').textContent = vehiclePrice ? '₦' + vehiclePrice.toLocaleString() : '—';
+      document.getElementById('statePrice').textContent = statePrice ? '₦' + statePrice.toLocaleString() : '—';
+      document.getElementById('totalPrice').textContent = '₦' + total.toLocaleString();
+      document.getElementById('payAmount').textContent = '₦' + total.toLocaleString();
 
-      vehEl.textContent = vehiclePrice ? '₦' + vehiclePrice.toLocaleString() : '—';
-      stEl.textContent  = statePrice   ? '₦' + statePrice.toLocaleString()   : '—';
-      totEl.textContent = '₦' + total.toLocaleString();
-      payEl.textContent = '₦' + total.toLocaleString();
+      document.getElementById('priceBox').classList.toggle('show', vehiclePrice > 0 && statePrice > 0);
+      document.getElementById('rowVehicle').classList.toggle('muted', !vehiclePrice);
+      document.getElementById('rowState').classList.toggle('muted', !statePrice);
 
-      if (vehiclePrice > 0 && statePrice > 0) {
-        priceBox.classList.add('show');
-      } else {
-        priceBox.classList.remove('show');
-      }
-      rowVehicle.classList.toggle('muted', !vehiclePrice);
-      rowState.classList.toggle('muted',   !statePrice);
-
-      // Require BOTH states before proceeding
-      const hasPickup  = pickupSel.value  && pickupPrice  > 0;
-      const hasDropoff = dropoffSel.value && dropoffPrice > 0;
-      proceedBtn.disabled = !(vehiclePrice > 0 && hasPickup && hasDropoff);
-
+      document.getElementById('proceedBtn').disabled = !(vehiclePrice > 0 && pickupPrice > 0 && dropoffPrice > 0);
       updateSteps();
     }
 
-    /* =================== PROGRESS STEPS =================== */
     function updateSteps() {
       const v = document.getElementById('vehicle').value;
       const t = document.getElementById('task').value;
       const p = document.getElementById('pickupState').value;
       const d = document.getElementById('dropoffState').value;
 
-      const step1 = document.getElementById('step1');
-      const step2 = document.getElementById('step2');
-      const step3 = document.getElementById('step3');
-
-      if (v) step1.classList.add('done'); else step1.classList.remove('done');
-      if (t) step2.classList.add('done'); else step2.classList.remove('done');
-      if (p && d) step3.classList.add('done'); else step3.classList.remove('done');
-
+      document.getElementById('step1').classList.toggle('done', !!v);
+      document.getElementById('step2').classList.toggle('done', !!t);
+      document.getElementById('step3').classList.toggle('done', !!(p && d));
       document.getElementById('line1').classList.toggle('done', !!(v && t));
       document.getElementById('line2').classList.toggle('done', !!(t && p && d));
 
       document.querySelectorAll('.step-dot').forEach(dot => dot.classList.remove('active'));
-      if (!v)       document.getElementById('step1').classList.add('active');
-      else if (!t)  document.getElementById('step2').classList.add('active');
+      if (!v) document.getElementById('step1').classList.add('active');
+      else if (!t) document.getElementById('step2').classList.add('active');
       else if (!(p && d)) document.getElementById('step3').classList.add('active');
-      else          document.getElementById('step4').classList.add('active');
+      else document.getElementById('step4').classList.add('active');
     }
 
-    /* =================== COPY ACCOUNT NUMBER =================== */
     function copyAcct() {
-      const num = document.getElementById('acctNum').textContent.trim();
-      navigator.clipboard.writeText(num).then(() => {
-        const btns = document.querySelectorAll('.copy-btn');
-        btns.forEach(b => {
-          const orig = b.innerHTML;
-          b.classList.add('copied');
-          b.innerHTML = '✓ Copied';
-          setTimeout(() => {
-            b.classList.remove('copied');
-            b.innerHTML = orig;
-          }, 1800);
-        });
-        showToast('Copied!', 'Account number copied to clipboard.', 'success', 2500);
-      }).catch(() => {
-        showToast('Could not copy', 'Please select and copy manually.', 'warning', 3000);
+      navigator.clipboard.writeText(document.getElementById('acctNum').textContent.trim()).then(() => {
+        showToast('Copied!', 'Account number copied.', 'success', 2500);
       });
     }
 
-    /* =================== PAYMENT PANEL =================== */
     function showPaymentPanel() {
-      const panel = document.getElementById('payPanel');
-      panel.classList.add('show');
-      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+      document.getElementById('payPanel').classList.add('show');
+      setTimeout(() => document.getElementById('payPanel').scrollIntoView({ behavior: 'smooth' }), 250);
     }
-    function hidePaymentPanel() {
-      document.getElementById('payPanel').classList.remove('show');
-    }
+    function hidePaymentPanel() { document.getElementById('payPanel').classList.remove('show'); }
 
-    /* =================== RECEIPT NAME =================== */
     function showReceiptName(event) {
       const file = event.target.files[0];
       const label = document.getElementById('receiptName');
       const uploader = document.getElementById('receiptUploader');
-      if (file) {
-        label.textContent = '✓ ' + file.name;
-        uploader.classList.add('has-file');
-      } else {
-        label.textContent = '';
-        uploader.classList.remove('has-file');
-      }
+      if (file) { label.textContent = '✓ ' + file.name; uploader.classList.add('has-file'); }
+      else { label.textContent = ''; uploader.classList.remove('has-file'); }
     }
 
-    /* =================== SUBMIT BOOKING =================== */
     function submitBooking(event) {
       event.preventDefault();
 
-      const vehicle        = document.getElementById('vehicle').value;
-      const task           = document.getElementById('task').value;
-      const otherTask      = document.getElementById('otherTask').value.trim();
-
-      const pickupState    = document.getElementById('pickupState').value;
-      const pickupCity     = document.getElementById('pickupCity').value.trim();
-      const pickupAddress  = document.getElementById('pickupAddress').value.trim();
-      const pickupContact  = document.getElementById('pickupContact').value.trim();
-      const pickupPhone    = document.getElementById('pickupPhone').value.trim();
-
-      const dropoffState   = document.getElementById('dropoffState').value;
-      const dropoffCity    = document.getElementById('dropoffCity').value.trim();
+      const vehicle = document.getElementById('vehicle').value;
+      const task = document.getElementById('task').value;
+      const otherTask = document.getElementById('otherTask').value.trim();
+      const pickupState = document.getElementById('pickupState').value;
+      const pickupCity = document.getElementById('pickupCity').value.trim();
+      const pickupAddress = document.getElementById('pickupAddress').value.trim();
+      const pickupContact = document.getElementById('pickupContact').value.trim();
+      const pickupPhone = document.getElementById('pickupPhone').value.trim();
+      const dropoffState = document.getElementById('dropoffState').value;
+      const dropoffCity = document.getElementById('dropoffCity').value.trim();
       const dropoffAddress = document.getElementById('dropoffAddress').value.trim();
       const dropoffContact = document.getElementById('dropoffContact').value.trim();
-      const dropoffPhone   = document.getElementById('dropoffPhone').value.trim();
+      const dropoffPhone = document.getElementById('dropoffPhone').value.trim();
+      const paymentBank = document.getElementById('paymentBank').value;
+      const paymentRef = document.getElementById('paymentReference').value.trim();
+      const receiptFile = document.getElementById('paymentReceipt').files[0];
 
-      const paymentBank    = document.getElementById('paymentBank').value;
-      const paymentRef     = document.getElementById('paymentReference').value.trim();
-      const receiptFile    = document.getElementById('paymentReceipt').files[0];
-
-      if (!vehicle || !task) {
-        showToast('Missing details', 'Please choose a vehicle and task type.', 'error', 4200);
-        return;
-      }
-      if (task === 'other' && !otherTask) {
-        showToast('Describe your task', 'Please type what you want to do.', 'warning', 4200);
-        return;
-      }
-      if (!pickupState || !pickupCity || !pickupAddress || !pickupContact || !pickupPhone) {
-        showToast('Pickup incomplete', 'Please fill in all pickup details.', 'error', 4200);
-        return;
-      }
-      if (!dropoffState || !dropoffCity || !dropoffAddress || !dropoffContact || !dropoffPhone) {
-        showToast('Drop-off incomplete', 'Please fill in all drop-off details.', 'error', 4200);
-        return;
-      }
-      if (!paymentBank) {
-        showToast('Select your bank', 'Please choose the bank you paid from.', 'error', 4200);
-        return;
-      }
-      if (!paymentRef) {
-        showToast('Missing reference', 'Please enter your transaction reference.', 'error', 4200);
-        return;
-      }
-      if (!receiptFile) {
-        showToast('Upload receipt', 'Please attach your payment receipt.', 'error', 4200);
-        return;
-      }
-      if (receiptFile.size > 5 * 1024 * 1024) {
-        showToast('File too large', 'Receipt must be 5MB or smaller.', 'error', 4200);
-        return;
-      }
+      if (!vehicle || !task) return showToast('Missing details', 'Pick a vehicle and task type.', 'error', 4000);
+      if (task === 'other' && !otherTask) return showToast('Describe task', 'Type what you want to do.', 'warning', 4000);
+      if (!pickupState || !pickupCity || !pickupAddress || !pickupContact || !pickupPhone)
+        return showToast('Pickup incomplete', 'Fill in all pickup fields.', 'error', 4000);
+      if (!dropoffState || !dropoffCity || !dropoffAddress || !dropoffContact || !dropoffPhone)
+        return showToast('Drop-off incomplete', 'Fill in all drop-off fields.', 'error', 4000);
+      if (!paymentBank) return showToast('Select bank', 'Choose the bank you paid from.', 'error', 4000);
+      if (!paymentRef) return showToast('Reference missing', 'Enter your transaction reference.', 'error', 4000);
+      if (!receiptFile) return showToast('Receipt missing', 'Upload your payment receipt.', 'error', 4000);
+      if (receiptFile.size > 5 * 1024 * 1024) return showToast('Too big', 'Receipt must be ≤5MB.', 'error', 4000);
 
       const fd = new FormData();
       fd.append('vehicle', vehicle);
@@ -1798,113 +1087,29 @@
       fd.append('paymentReference', paymentRef);
       fd.append('paymentReceipt', receiptFile);
 
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ Submitting…';
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Submitting…';
 
       fetch('/api/book', { method: 'POST', body: fd })
-      .then(res => res.json())
-      .then(data => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✅ I have paid — Submit for Verification';
-
-        if (data.ok) {
-          showToast('Booking submitted! 🎉',
-            `${data.message} Reference: ${data.reference}`,
-            'success', 6000);
-          burstConfetti();
-
-          setTimeout(() => {
-            document.getElementById('bookingForm').reset();
-            document.querySelectorAll('.v-card, .t-pill').forEach(c => c.classList.remove('selected'));
-            document.getElementById('priceBox').classList.remove('show');
-            document.getElementById('payPanel').classList.remove('show');
-            document.getElementById('proceedBtn').disabled = true;
-            document.getElementById('receiptName').textContent = '';
-            document.getElementById('receiptUploader').classList.remove('has-file');
-            document.getElementById('vehiclePrice').textContent = '—';
-            document.getElementById('statePrice').textContent = '—';
-            document.getElementById('totalPrice').textContent = '₦0';
-            document.getElementById('payAmount').textContent = '₦0';
-            updateSteps();
-
-            switchTab('list');
-            setTimeout(() => window.location.reload(), 1000);
-          }, 2800);
-        } else {
-          showToast('Booking failed', data.error || 'Something went wrong.', 'error', 4500);
-        }
-      })
-      .catch(err => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '✅ I have paid — Submit for Verification';
-        showToast('Network error', 'Could not reach the server. Try again.', 'error', 4500);
-        console.error(err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          btn.disabled = false;
+          btn.textContent = '✅ I have paid — Submit for Verification';
+          if (data.ok) {
+            showToast('Booking submitted! 🎉', `Ref: ${data.reference}`, 'success', 6000);
+            setTimeout(() => window.location.reload(), 1800);
+          } else {
+            showToast('Booking failed', data.error || 'Try again.', 'error', 4500);
+          }
+        })
+        .catch(err => {
+          btn.disabled = false;
+          btn.textContent = '✅ I have paid — Submit for Verification';
+          showToast('Network error', 'Could not reach server.', 'error', 4500);
+          console.error(err);
+        });
     }
-
-    /* ============================================================
-       PAGE TRANSITION LOGIC
-       ============================================================ */
-    (function() {
-      const overlay = document.getElementById('pageTransition');
-      if (!overlay) return;
-
-      window.addEventListener('load', () => {
-        setTimeout(() => overlay.classList.add('hide'), 200);
-      });
-
-      document.addEventListener('click', (e) => {
-        const link = e.target.closest('a');
-        if (!link) return;
-
-        const href = link.getAttribute('href');
-        if (!href) return;
-
-        if (href.startsWith('#') ||
-            href.startsWith('mailto:') ||
-            href.startsWith('tel:') ||
-            (href.startsWith('http') && !href.includes(location.host)) ||
-            link.target === '_blank' ||
-            link.hasAttribute('download')) {
-          return;
-        }
-
-        e.preventDefault();
-        overlay.classList.remove('hide');
-        setTimeout(() => { window.location.href = href; }, 500);
-      });
-
-      window.addEventListener('pageshow', () => {
-        setTimeout(() => overlay.classList.add('hide'), 100);
-      });
-    })();
-  </script>
-    <!-- ===== CHATBOT (Chatbase) ===== -->
-  <script>
-  (function(){
-    if(!window.chatbase||window.chatbase("getState")!=="initialized"){
-      window.chatbase=(...arguments)=>{
-        if(!window.chatbase.q){window.chatbase.q=[]}
-        window.chatbase.q.push(arguments)
-      };
-      window.chatbase=new Proxy(window.chatbase,{
-        get(target,prop){
-          if(prop==="q"){return target.q}
-          return(...args)=>target(prop,...args)
-        }
-      })
-    }
-    const onLoad=function(){
-      const script=document.createElement("script");
-      script.src="https://www.chatbase.co/embed.min.js";
-      script.id="xaL2LDrS6M_eW9niOeuUj";
-      script.setAttribute("data-domain", "www.chatbase.co");
-      document.body.appendChild(script)
-    };
-    if(document.readyState==="complete"){onLoad()}
-    else{window.addEventListener("load",onLoad)}
-  })();
   </script>
 </body>
 </html>

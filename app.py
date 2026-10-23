@@ -144,6 +144,14 @@ def init_db():
     conn.close()
 
 
+# Run init_db() on every startup so migrations always apply (Render-safe)
+with app.app_context():
+    try:
+        init_db()
+    except Exception as _e:
+        print(f"[init_db] startup migration failed: {_e}")
+
+
 # ------------------------------------------------------------------
 # DECORATORS
 # ------------------------------------------------------------------
@@ -512,7 +520,6 @@ def create():
             flash(f"Could not create account: {ex}", "error")
             return redirect(url_for("create"))
 
-        # --- welcome email ---
         try:
             send_email(
                 to_email=email,
@@ -561,30 +568,25 @@ def dashboard():
 @app.route("/api/book", methods=["POST"])
 @login_required
 def api_book():
-    # --- core selection ---
     vehicle    = (request.form.get("vehicle") or "").strip()
     task       = (request.form.get("task") or "").strip()
     other_task = (request.form.get("otherTask") or "").strip()
 
-    # --- PICKUP ---
     pickup_state   = (request.form.get("pickupState")   or "").strip()
     pickup_city    = (request.form.get("pickupCity")    or "").strip()
     pickup_address = (request.form.get("pickupAddress") or "").strip()
     pickup_contact = (request.form.get("pickupContact") or "").strip()
     pickup_phone   = (request.form.get("pickupPhone")   or "").strip()
 
-    # --- DROP-OFF ---
     dropoff_state   = (request.form.get("dropoffState")   or "").strip()
     dropoff_city    = (request.form.get("dropoffCity")    or "").strip()
     dropoff_address = (request.form.get("dropoffAddress") or "").strip()
     dropoff_contact = (request.form.get("dropoffContact") or "").strip()
     dropoff_phone   = (request.form.get("dropoffPhone")   or "").strip()
 
-    # --- payment ---
     payment_bank = (request.form.get("paymentBank") or "").strip()
     payment_ref  = (request.form.get("paymentReference") or "").strip()
 
-    # --- validation ---
     if vehicle not in VEHICLE_PRICES:
         return jsonify(ok=False, error="Invalid vehicle type."), 400
     if task not in ("ride", "waybill", "transfer", "other"):
@@ -610,7 +612,6 @@ def api_book():
     if not allowed_file(receipt.filename):
         return jsonify(ok=False, error="Receipt must be JPG, PNG, or PDF."), 400
 
-    # --- price: state price = max(pickup, dropoff) so cross-state costs are fair ---
     vehicle_price = VEHICLE_PRICES[vehicle]
     pickup_price  = STATE_PRICES[pickup_state]
     dropoff_price = STATE_PRICES[dropoff_state]
@@ -645,7 +646,6 @@ def api_book():
     )
     db.commit()
 
-    # --- notify user ---
     try:
         user_row = db.execute(
             "SELECT email, firstname FROM users WHERE id=?",
@@ -668,7 +668,6 @@ def api_book():
     except Exception as e:
         print(f"[email] booking received email error: {e}")
 
-    # --- notify admin ---
     try:
         send_admin_new_booking_email(
             reference=reference,
@@ -796,7 +795,17 @@ def admin_booking_detail(reference):
         flash("Booking not found.", "error")
         return redirect(url_for("admin_dashboard"))
 
-    return render_template("admin_booking.html", b=row)
+    row_dict = dict(row)
+    defaults = {
+        "pickup_state": None, "pickup_city": None, "pickup_address": None,
+        "pickup_contact": None, "pickup_phone": None,
+        "dropoff_state": None, "dropoff_city": None, "dropoff_address": None,
+        "dropoff_contact": None, "dropoff_phone": None,
+    }
+    for k, v in defaults.items():
+        row_dict.setdefault(k, v)
+
+    return render_template("admin_booking.html", b=row_dict)
 
 
 @app.route("/admin/action", methods=["POST"])
@@ -855,3 +864,4 @@ def admin_action():
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
+    
