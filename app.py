@@ -70,7 +70,6 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # ---------- USERS ----------
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,7 +85,6 @@ def init_db():
         )
     """)
 
-    # ---------- BOOKINGS ----------
     cur.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,20 +119,15 @@ def init_db():
         )
     """)
 
-    # ---------- SAFE MIGRATION: add new pickup/drop-off columns to old DBs ----------
+    # ---------- SAFE MIGRATION ----------
     cur.execute("PRAGMA table_info(bookings)")
     existing = {row[1] for row in cur.fetchall()}
     new_cols = [
-        ("pickup_state",    "TEXT"),
-        ("pickup_city",     "TEXT"),
-        ("pickup_address",  "TEXT"),
-        ("pickup_contact",  "TEXT"),
-        ("pickup_phone",    "TEXT"),
-        ("dropoff_state",   "TEXT"),
-        ("dropoff_city",    "TEXT"),
-        ("dropoff_address", "TEXT"),
-        ("dropoff_contact", "TEXT"),
-        ("dropoff_phone",   "TEXT"),
+        ("pickup_state",    "TEXT"), ("pickup_city",     "TEXT"),
+        ("pickup_address",  "TEXT"), ("pickup_contact",  "TEXT"),
+        ("pickup_phone",    "TEXT"), ("dropoff_state",   "TEXT"),
+        ("dropoff_city",    "TEXT"), ("dropoff_address", "TEXT"),
+        ("dropoff_contact", "TEXT"), ("dropoff_phone",   "TEXT"),
     ]
     for name, coltype in new_cols:
         if name not in existing:
@@ -144,7 +137,7 @@ def init_db():
     conn.close()
 
 
-# Run init_db() on every startup so migrations always apply (Render-safe)
+# Run init_db() on every startup so migrations always apply
 with app.app_context():
     try:
         init_db()
@@ -192,11 +185,9 @@ def allowed_file(filename):
 # EMAIL HELPER (via Resend HTTP API)
 # ------------------------------------------------------------------
 def send_email(to_email, subject, body_text, body_html=None):
-    """Send an email using Resend API. Returns True on success."""
     if not RESEND_API_KEY:
         print("[email] RESEND_API_KEY not set — skipping.")
         return False
-
     try:
         params = {
             "from":    f"{COMPANY_NAME} <{EMAIL_FROM}>",
@@ -208,155 +199,55 @@ def send_email(to_email, subject, body_text, body_html=None):
             params["text"] = body_text
         else:
             params["text"] = body_text
-
         result = resend.Emails.send(params)
-        print(f"[email] Sent to {to_email}: {subject} → {result}")
+        print(f"[email] Sent to {to_email}: {subject}")
         return True
-
     except Exception as e:
         print(f"[email] Failed to send to {to_email}: {type(e).__name__} — {e}")
         return False
 
 
-def send_booking_status_email(to_email, firstname, reference, total,
-                              status, note=None):
-    """Notify a user that their booking was approved or rejected."""
+def send_booking_status_email(to_email, firstname, reference, total, status, note=None):
     if status == "approved":
         subject = f"Booking {reference} — Approved ✓"
         text = (
-            f"Hi {firstname},\n\n"
-            f"Great news! Your booking {reference} has been APPROVED.\n\n"
-            f"Amount received: ₦{total:,}\n"
-            f"Reference: {reference}\n\n"
+            f"Hi {firstname},\n\nGreat news! Your booking {reference} has been APPROVED.\n\n"
+            f"Amount received: ₦{total:,}\nReference: {reference}\n\n"
             f"A driver will contact you shortly with pickup details.\n\n"
             f"Thank you for choosing {COMPANY_NAME}.\n"
         )
-        html = f"""
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
-                    background:#f4f7fa;padding:2rem;border-radius:14px;">
-          <div style="background:#0a2a3b;color:#fff;padding:1.5rem;
-                      border-radius:10px;text-align:center;">
-            <h1 style="margin:0;font-size:1.4rem;">{COMPANY_NAME}</h1>
-            <p style="margin:0.25rem 0 0;opacity:0.8;font-size:0.9rem;">
-              Booking Approved
-            </p>
-          </div>
-          <div style="background:#fff;padding:1.75rem;border-radius:10px;
-                      margin-top:1rem;">
-            <p>Hi <strong>{firstname}</strong>,</p>
-            <p style="color:#067647;font-size:1.05rem;">
-              <strong>✓ Your booking has been APPROVED.</strong>
-            </p>
-            <table style="width:100%;margin:1rem 0;font-size:0.92rem;">
-              <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
-                  <td style="text-align:right;font-weight:600;">{reference}</td></tr>
-              <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
-                  <td style="text-align:right;font-weight:600;">₦{total:,}</td></tr>
-            </table>
-            <p>A driver will contact you shortly with pickup details.</p>
-            <p style="color:#839eae;font-size:0.85rem;margin-top:1.5rem;">
-              Thank you for choosing {COMPANY_NAME}.
-            </p>
-          </div>
-        </div>
-        """
+        html = f"<h1>Booking Approved</h1><p>Hi {firstname}, your booking {reference} has been approved.</p>"
     else:
         subject = f"Booking {reference} — Rejected"
         reason  = note or "No reason provided."
         text = (
-            f"Hi {firstname},\n\n"
-            f"We're sorry to let you know that your booking {reference} "
-            f"was NOT approved.\n\n"
-            f"Reason: {reason}\n\n"
-            f"If you think this is a mistake, please reply to this email "
-            f"or submit a new booking with the correct details.\n\n"
+            f"Hi {firstname},\n\nWe're sorry to let you know that your booking {reference} "
+            f"was NOT approved.\n\nReason: {reason}\n\n"
+            f"If you think this is a mistake, please reply to this email or submit a new booking.\n\n"
             f"— {COMPANY_NAME}\n"
         )
-        html = f"""
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
-                    background:#f4f7fa;padding:2rem;border-radius:14px;">
-          <div style="background:#0a2a3b;color:#fff;padding:1.5rem;
-                      border-radius:10px;text-align:center;">
-            <h1 style="margin:0;font-size:1.4rem;">{COMPANY_NAME}</h1>
-            <p style="margin:0.25rem 0 0;opacity:0.8;font-size:0.9rem;">
-              Booking Update
-            </p>
-          </div>
-          <div style="background:#fff;padding:1.75rem;border-radius:10px;
-                      margin-top:1rem;">
-            <p>Hi <strong>{firstname}</strong>,</p>
-            <p style="color:#b42318;font-size:1.05rem;">
-              <strong>Your booking was not approved.</strong>
-            </p>
-            <table style="width:100%;margin:1rem 0;font-size:0.92rem;">
-              <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
-                  <td style="text-align:right;font-weight:600;">{reference}</td></tr>
-              <tr><td style="padding:6px 0;color:#5e7a8c;">Reason</td>
-                  <td style="text-align:right;font-weight:600;">{reason}</td></tr>
-            </table>
-            <p>If you think this is a mistake, reply to this email or
-               submit a new booking with the correct details.</p>
-          </div>
-        </div>
-        """
-
+        html = f"<h1>Booking Update</h1><p>Hi {firstname}, your booking was not approved. Reason: {reason}</p>"
     return send_email(to_email, subject, text, html)
 
 
-def send_admin_new_booking_email(reference, user_name, user_email,
-                                 vehicle, task, pickup_state, dropoff_state,
-                                 total):
-    """Notify the admin when a new booking is submitted."""
+def send_admin_new_booking_email(reference, user_name, user_email, vehicle, task, pickup_state, dropoff_state, total):
     if not RESEND_API_KEY:
         return False
-
     admin_email = os.environ.get("GMAIL_USER", EMAIL_FROM)
     subject = f"🔔 New Booking {reference} — ₦{total:,}"
     text = (
-        f"New booking received!\n\n"
-        f"Reference:  {reference}\n"
+        f"New booking received!\n\nReference:  {reference}\n"
         f"Customer:   {user_name} ({user_email})\n"
-        f"Vehicle:    {vehicle}\n"
-        f"Task:       {task}\n"
-        f"Pickup:     {pickup_state}\n"
-        f"Drop-off:   {dropoff_state}\n"
-        f"Amount:     ₦{total:,}\n\n"
-        f"Log in to the admin panel to approve or reject.\n"
+        f"Vehicle:    {vehicle}\nTask:       {task}\n"
+        f"Pickup:     {pickup_state}\nDrop-off:   {dropoff_state}\n"
+        f"Amount:     ₦{total:,}\n\nLog in to the admin panel to approve or reject.\n"
     )
-    html = f"""
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
-                background:#f4f7fa;padding:2rem;border-radius:14px;">
-      <div style="background:#0a2a3b;color:#fff;padding:1.25rem;
-                  border-radius:10px;text-align:center;">
-        <h1 style="margin:0;font-size:1.3rem;">🔔 New Booking</h1>
-      </div>
-      <div style="background:#fff;padding:1.5rem;border-radius:10px;margin-top:1rem;">
-        <table style="width:100%;font-size:0.92rem;">
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Reference</td>
-              <td style="text-align:right;font-weight:600;">{reference}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Customer</td>
-              <td style="text-align:right;font-weight:600;">{user_name}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Email</td>
-              <td style="text-align:right;font-weight:600;">{user_email}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Vehicle</td>
-              <td style="text-align:right;font-weight:600;">{vehicle}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Task</td>
-              <td style="text-align:right;font-weight:600;">{task}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Pickup state</td>
-              <td style="text-align:right;font-weight:600;">{pickup_state}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Drop-off state</td>
-              <td style="text-align:right;font-weight:600;">{dropoff_state}</td></tr>
-          <tr><td style="padding:6px 0;color:#5e7a8c;">Amount</td>
-              <td style="text-align:right;font-weight:700;">₦{total:,}</td></tr>
-        </table>
-      </div>
-    </div>
-    """
+    html = f"<h1>New Booking</h1><p>Reference: {reference}</p>"
     return send_email(admin_email, subject, text, html)
 
 
 # ------------------------------------------------------------------
-# DOMINION COMPANY BANK DETAILS
+# COMPANY BANK DETAILS & PRICES
 # ------------------------------------------------------------------
 COMPANY_BANK = {
     "bank_name":      "Fidelity Bank",
@@ -364,10 +255,6 @@ COMPANY_BANK = {
     "account_name":   "Doinion Enenche",
 }
 
-
-# ------------------------------------------------------------------
-# PRICE TABLES
-# ------------------------------------------------------------------
 VEHICLE_PRICES = {
     "bike": 5000, "car": 10000, "suv": 15000, "van": 18000,
     "truck-small": 25000, "truck-large": 40000, "trailer": 60000,
@@ -395,7 +282,6 @@ BANKS = [
 
 
 def generate_reference():
-    """Return a unique booking reference like DOM-20250917-0001."""
     db = get_db()
     today = datetime.now().strftime("%Y%m%d")
     count = db.execute(
@@ -419,33 +305,25 @@ def login():
     if request.method == "POST":
         identifier = (request.form.get("identifier") or "").strip()
         password   = (request.form.get("password") or "")
-
         if not identifier or not password:
             flash("Please enter your email/username and password.", "error")
             return redirect(url_for("login"))
-
         db = get_db()
         user = db.execute(
-            """SELECT * FROM users
-               WHERE LOWER(username) = LOWER(?)
-                  OR LOWER(email)    = LOWER(?)""",
+            "SELECT * FROM users WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)",
             (identifier, identifier),
         ).fetchone()
-
         if user is None:
             flash("No account found with that email or username.", "error")
             return redirect(url_for("login"))
-
         if not check_password_hash(user["password_hash"], password):
             flash("Incorrect password. Try again.", "error")
             return redirect(url_for("login"))
-
         session["user_id"]   = user["id"]
         session["username"]  = user["username"]
         session["user_name"] = f"{user['firstname']} {user['lastname']}"
         flash(f"Welcome back, {user['firstname']}!", "success")
         return redirect(url_for("dashboard"))
-
     return render_template("login.html")
 
 
@@ -461,29 +339,20 @@ def create():
         password  = request.form.get("password") or ""
 
         errors = []
-        if not firstname or not lastname:
-            errors.append("First and last name are required.")
-        if not USERNAME_RE.match(username):
-            errors.append("Username must be 3–20 characters (letters, numbers, _ or .).")
-        if not EMAIL_RE.match(email):
-            errors.append("Please enter a valid email address.")
-        if not dob:
-            errors.append("Date of birth is required.")
-        if not NIN_RE.match(nin):
-            errors.append("NIN must be exactly 11 digits.")
-        if len(password) < 6:
-            errors.append("Password must be at least 6 characters.")
+        if not firstname or not lastname: errors.append("First and last name are required.")
+        if not USERNAME_RE.match(username): errors.append("Username must be 3–20 characters (letters, numbers, _ or .).")
+        if not EMAIL_RE.match(email): errors.append("Please enter a valid email address.")
+        if not dob: errors.append("Date of birth is required.")
+        if not NIN_RE.match(nin): errors.append("NIN must be exactly 11 digits.")
+        if len(password) < 6: errors.append("Password must be at least 6 characters.")
 
         file = request.files.get("nin_photo")
         saved_filename = None
-        if not file or file.filename == "":
-            errors.append("Please upload your NIN photo/slip.")
-        elif not allowed_file(file.filename):
-            errors.append("File type not allowed. Use JPG, PNG, or PDF.")
+        if not file or file.filename == "": errors.append("Please upload your NIN photo/slip.")
+        elif not allowed_file(file.filename): errors.append("File type not allowed. Use JPG, PNG, or PDF.")
 
         if errors:
-            for e in errors:
-                flash(e, "error")
+            for e in errors: flash(e, "error")
             return redirect(url_for("create"))
 
         db = get_db()
@@ -504,16 +373,8 @@ def create():
 
         try:
             db.execute(
-                """INSERT INTO users
-                   (firstname, lastname, username, email, dob, nin,
-                    nin_photo, password_hash, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    firstname, lastname, username, email, dob, nin,
-                    saved_filename,
-                    generate_password_hash(password),
-                    datetime.now().isoformat(timespec="seconds"),
-                ),
+                "INSERT INTO users (firstname, lastname, username, email, dob, nin, nin_photo, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (firstname, lastname, username, email, dob, nin, saved_filename, generate_password_hash(password), datetime.now().isoformat(timespec="seconds")),
             )
             db.commit()
         except sqlite3.IntegrityError as ex:
@@ -524,20 +385,13 @@ def create():
             send_email(
                 to_email=email,
                 subject=f"Welcome to {COMPANY_NAME}!",
-                body_text=(
-                    f"Hi {firstname},\n\n"
-                    f"Welcome to {COMPANY_NAME}! Your account is ready.\n"
-                    f"Username: {username}\n\n"
-                    f"Sign in here to make your first booking.\n\n"
-                    f"— The {COMPANY_NAME} team"
-                ),
+                body_text=f"Hi {firstname},\n\nWelcome to {COMPANY_NAME}! Your account is ready.\nUsername: {username}\n\nSign in here to make your first booking.\n\n— The {COMPANY_NAME} team",
             )
         except Exception as e:
             print(f"[email] Welcome email error: {e}")
 
         flash("Account created successfully. Please sign in.", "success")
         return redirect(url_for("login"))
-
     return render_template("create.html")
 
 
@@ -553,145 +407,129 @@ def logout():
 def dashboard():
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE id=?", (session["user_id"],)).fetchone()
-    bookings = db.execute(
-        "SELECT * FROM bookings WHERE user_id=? ORDER BY id DESC",
-        (session["user_id"],),
-    ).fetchall()
-    return render_template(
-        "dashbord.html",
-        user=user,
-        bookings=bookings,
-        company_bank=COMPANY_BANK,
-    )
+    bookings = db.execute("SELECT * FROM bookings WHERE user_id=? ORDER BY id DESC", (session["user_id"],)).fetchall()
+    return render_template("dashbord.html", user=user, bookings=bookings, company_bank=COMPANY_BANK)
 
 
 @app.route("/api/book", methods=["POST"])
 @login_required
 def api_book():
-    vehicle    = (request.form.get("vehicle") or "").strip()
-    task       = (request.form.get("task") or "").strip()
-    other_task = (request.form.get("otherTask") or "").strip()
-
-    pickup_state   = (request.form.get("pickupState")   or "").strip()
-    pickup_city    = (request.form.get("pickupCity")    or "").strip()
-    pickup_address = (request.form.get("pickupAddress") or "").strip()
-    pickup_contact = (request.form.get("pickupContact") or "").strip()
-    pickup_phone   = (request.form.get("pickupPhone")   or "").strip()
-
-    dropoff_state   = (request.form.get("dropoffState")   or "").strip()
-    dropoff_city    = (request.form.get("dropoffCity")    or "").strip()
-    dropoff_address = (request.form.get("dropoffAddress") or "").strip()
-    dropoff_contact = (request.form.get("dropoffContact") or "").strip()
-    dropoff_phone   = (request.form.get("dropoffPhone")   or "").strip()
-
-    payment_bank = (request.form.get("paymentBank") or "").strip()
-    payment_ref  = (request.form.get("paymentReference") or "").strip()
-
-    if vehicle not in VEHICLE_PRICES:
-        return jsonify(ok=False, error="Invalid vehicle type."), 400
-    if task not in ("ride", "waybill", "transfer", "other"):
-        return jsonify(ok=False, error="Invalid task type."), 400
-    if task == "other" and not other_task:
-        return jsonify(ok=False, error="Please describe your custom task."), 400
-    if pickup_state not in STATE_PRICES:
-        return jsonify(ok=False, error="Please select a valid pickup state."), 400
-    if dropoff_state not in STATE_PRICES:
-        return jsonify(ok=False, error="Please select a valid drop-off state."), 400
-    if not all([pickup_city, pickup_address, pickup_contact, pickup_phone]):
-        return jsonify(ok=False, error="Please complete all pickup details."), 400
-    if not all([dropoff_city, dropoff_address, dropoff_contact, dropoff_phone]):
-        return jsonify(ok=False, error="Please complete all drop-off details."), 400
-    if payment_bank not in BANKS:
-        return jsonify(ok=False, error="Please select the bank you paid from."), 400
-    if not payment_ref:
-        return jsonify(ok=False, error="Please enter your payment reference."), 400
-
-    receipt = request.files.get("paymentReceipt")
-    if not receipt or receipt.filename == "":
-        return jsonify(ok=False, error="Please upload your payment receipt."), 400
-    if not allowed_file(receipt.filename):
-        return jsonify(ok=False, error="Receipt must be JPG, PNG, or PDF."), 400
-
-    vehicle_price = VEHICLE_PRICES[vehicle]
-    pickup_price  = STATE_PRICES[pickup_state]
-    dropoff_price = STATE_PRICES[dropoff_state]
-    state_price   = max(pickup_price, dropoff_price)
-    total_price   = vehicle_price + state_price
-    reference     = generate_reference()
-
-    original  = secure_filename(receipt.filename)
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    saved_receipt = f"receipt_{reference}_{timestamp}_{original}"
-    receipt.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_receipt))
-
-    db = get_db()
-    db.execute(
-        """INSERT INTO bookings
-           (user_id, reference, vehicle, task, other_task,
-            pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
-            dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
-            vehicle_price, state_price, total_price,
-            payment_bank, payment_reference, payment_receipt,
-            status, created_at)
-           VALUES (?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?)""",
-        (
-            session["user_id"], reference, vehicle, task, other_task or None,
-            pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
-            dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
-            vehicle_price, state_price, total_price,
-            payment_bank, payment_ref, saved_receipt,
-            "pending",
-            datetime.now().isoformat(timespec="seconds"),
-        ),
-    )
-    db.commit()
-
     try:
-        user_row = db.execute(
-            "SELECT email, firstname FROM users WHERE id=?",
-            (session["user_id"],)
-        ).fetchone()
-        if user_row:
-            send_email(
-                to_email=user_row["email"],
-                subject=f"Booking {reference} — Received",
-                body_text=(
-                    f"Hi {user_row['firstname']},\n\n"
-                    f"We've received your booking {reference} for ₦{total_price:,}.\n"
-                    f"Pickup:   {pickup_state} — {pickup_city}\n"
-                    f"Drop-off: {dropoff_state} — {dropoff_city}\n"
-                    f"Status:   PENDING — under review.\n\n"
-                    f"We'll email you again once it's been approved or rejected.\n\n"
-                    f"— {COMPANY_NAME}"
-                ),
-            )
-    except Exception as e:
-        print(f"[email] booking received email error: {e}")
+        vehicle    = (request.form.get("vehicle") or "").strip()
+        task       = (request.form.get("task") or "").strip()
+        other_task = (request.form.get("otherTask") or "").strip()
 
-    try:
-        send_admin_new_booking_email(
-            reference=reference,
-            user_name=session.get("user_name", "Customer"),
-            user_email=user_row["email"] if user_row else "unknown",
-            vehicle=vehicle,
-            task=task if task != "other" else f"Other: {other_task}",
-            pickup_state=f"{pickup_state} — {pickup_city}",
-            dropoff_state=f"{dropoff_state} — {dropoff_city}",
-            total=total_price,
+        pickup_state   = (request.form.get("pickupState")   or "").strip()
+        pickup_city    = (request.form.get("pickupCity")    or "").strip()
+        pickup_address = (request.form.get("pickupAddress") or "").strip()
+        pickup_contact = (request.form.get("pickupContact") or "").strip()
+        pickup_phone   = (request.form.get("pickupPhone")   or "").strip()
+
+        dropoff_state   = (request.form.get("dropoffState")   or "").strip()
+        dropoff_city    = (request.form.get("dropoffCity")    or "").strip()
+        dropoff_address = (request.form.get("dropoffAddress") or "").strip()
+        dropoff_contact = (request.form.get("dropoffContact") or "").strip()
+        dropoff_phone   = (request.form.get("dropoffPhone")   or "").strip()
+
+        payment_bank = (request.form.get("paymentBank") or "").strip()
+        payment_ref  = (request.form.get("paymentReference") or "").strip()
+
+        if vehicle not in VEHICLE_PRICES:
+            return jsonify(ok=False, error="Invalid vehicle type."), 400
+        if task not in ("ride", "waybill", "transfer", "other"):
+            return jsonify(ok=False, error="Invalid task type."), 400
+        if task == "other" and not other_task:
+            return jsonify(ok=False, error="Please describe your custom task."), 400
+        if pickup_state not in STATE_PRICES:
+            return jsonify(ok=False, error="Please select a valid pickup state."), 400
+        if dropoff_state not in STATE_PRICES:
+            return jsonify(ok=False, error="Please select a valid drop-off state."), 400
+        if not all([pickup_city, pickup_address, pickup_contact, pickup_phone]):
+            return jsonify(ok=False, error="Please complete all pickup details."), 400
+        if not all([dropoff_city, dropoff_address, dropoff_contact, dropoff_phone]):
+            return jsonify(ok=False, error="Please complete all drop-off details."), 400
+        if payment_bank not in BANKS:
+            return jsonify(ok=False, error="Please select the bank you paid from."), 400
+        if not payment_ref:
+            return jsonify(ok=False, error="Please enter your payment reference."), 400
+
+        receipt = request.files.get("paymentReceipt")
+        if not receipt or receipt.filename == "":
+            return jsonify(ok=False, error="Please upload your payment receipt."), 400
+        if not allowed_file(receipt.filename):
+            return jsonify(ok=False, error="Receipt must be JPG, PNG, or PDF."), 400
+
+        vehicle_price = VEHICLE_PRICES[vehicle]
+        pickup_price  = STATE_PRICES[pickup_state]
+        dropoff_price = STATE_PRICES[dropoff_state]
+        state_price   = max(pickup_price, dropoff_price)
+        total_price   = vehicle_price + state_price
+        reference     = generate_reference()
+
+        original  = secure_filename(receipt.filename)
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        saved_receipt = f"receipt_{reference}_{timestamp}_{original}"
+        receipt.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_receipt))
+
+        db = get_db()
+        db.execute(
+            """INSERT INTO bookings
+               (user_id, reference, vehicle, task, other_task,
+                pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
+                dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
+                vehicle_price, state_price, total_price,
+                payment_bank, payment_reference, payment_receipt,
+                status, created_at)
+               VALUES (?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?)""",
+            (
+                session["user_id"], reference, vehicle, task, other_task or None,
+                pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
+                dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
+                vehicle_price, state_price, total_price,
+                payment_bank, payment_ref, saved_receipt,
+                "pending",
+                datetime.now().isoformat(timespec="seconds"),
+            ),
         )
-    except Exception as e:
-        print(f"[email] admin notify error: {e}")
+        db.commit()
 
-    return jsonify(
-        ok=True,
-        reference=reference,
-        total=total_price,
-        status="pending",
-        message=(
-            f"Booking {reference} submitted for verification. "
-            "We'll confirm once we receive your payment."
-        ),
-    )
+        user_row = None
+        try:
+            user_row = db.execute("SELECT email, firstname FROM users WHERE id=?", (session["user_id"],)).fetchone()
+        except Exception as e:
+            print(f"[api_book] user lookup error: {e}")
+
+        if user_row:
+            try:
+                send_email(
+                    to_email=user_row["email"],
+                    subject=f"Booking {reference} — Received",
+                    body_text=f"Hi {user_row['firstname']},\n\nWe've received your booking {reference} for ₦{total_price:,}.\nPickup: {pickup_state} — {pickup_city}\nDrop-off: {dropoff_state} — {dropoff_city}\nStatus: PENDING — under review.\n\n— {COMPANY_NAME}",
+                )
+            except Exception as e:
+                print(f"[api_book] user email error: {e}")
+
+        try:
+            send_admin_new_booking_email(
+                reference=reference,
+                user_name=session.get("user_name", "Customer"),
+                user_email=user_row["email"] if user_row else "unknown",
+                vehicle=vehicle,
+                task=task if task != "other" else f"Other: {other_task}",
+                pickup_state=f"{pickup_state} — {pickup_city}",
+                dropoff_state=f"{dropoff_state} — {dropoff_city}",
+                total=total_price,
+            )
+        except Exception as e:
+            print(f"[api_book] admin email error: {e}")
+
+        return jsonify(ok=True, reference=reference, total=total_price, status="pending", message=f"Booking {reference} submitted for verification.")
+
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        print(f"[api_book] FATAL: {e}\n{tb}")
+        return jsonify(ok=False, error=f"Server error: {type(e).__name__}: {str(e)}"), 500
 
 
 @app.route("/api/bookings")
@@ -722,16 +560,13 @@ def admin_login():
     if request.method == "POST":
         username = (request.form.get("username") or "").strip()
         password = (request.form.get("password") or "")
-
         if username != ADMIN_USERNAME or not check_password_hash(ADMIN_PASSWORD_HASH, password):
             flash("Invalid admin credentials.", "error")
             return redirect(url_for("admin_login"))
-
         session["is_admin"] = True
         session["admin_username"] = username
         flash("Welcome, admin.", "success")
         return redirect(url_for("admin_dashboard"))
-
     return render_template("admin_login.html")
 
 
@@ -748,19 +583,13 @@ def admin_logout():
 def admin_dashboard():
     status_filter = request.args.get("status", "all")
     db = get_db()
-
     if status_filter == "all":
         rows = db.execute(
-            """SELECT b.*, u.firstname, u.lastname, u.username, u.email
-               FROM bookings b LEFT JOIN users u ON u.id = b.user_id
-               ORDER BY b.id DESC"""
+            "SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id ORDER BY b.id DESC"
         ).fetchall()
     else:
         rows = db.execute(
-            """SELECT b.*, u.firstname, u.lastname, u.username, u.email
-               FROM bookings b LEFT JOIN users u ON u.id = b.user_id
-               WHERE b.status = ?
-               ORDER BY b.id DESC""",
+            "SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.status = ? ORDER BY b.id DESC",
             (status_filter,),
         ).fetchall()
 
@@ -770,14 +599,7 @@ def admin_dashboard():
         "approved": db.execute("SELECT COUNT(*) FROM bookings WHERE status='approved'").fetchone()[0],
         "rejected": db.execute("SELECT COUNT(*) FROM bookings WHERE status='rejected'").fetchone()[0],
     }
-
-    return render_template(
-        "admin.html",
-        bookings=rows,
-        counts=counts,
-        status_filter=status_filter,
-        admin_username=session.get("admin_username"),
-    )
+    return render_template("admin.html", bookings=rows, counts=counts, status_filter=status_filter, admin_username=session.get("admin_username"))
 
 
 @app.route("/admin/booking/<reference>")
@@ -785,16 +607,12 @@ def admin_dashboard():
 def admin_booking_detail(reference):
     db = get_db()
     row = db.execute(
-        """SELECT b.*, u.firstname, u.lastname, u.username, u.email, u.nin, u.dob
-           FROM bookings b LEFT JOIN users u ON u.id = b.user_id
-           WHERE b.reference = ?""",
+        "SELECT b.*, u.firstname, u.lastname, u.username, u.email, u.nin, u.dob FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.reference = ?",
         (reference,),
     ).fetchone()
-
     if row is None:
         flash("Booking not found.", "error")
         return redirect(url_for("admin_dashboard"))
-
     row_dict = dict(row)
     defaults = {
         "pickup_state": None, "pickup_city": None, "pickup_address": None,
@@ -804,7 +622,6 @@ def admin_booking_detail(reference):
     }
     for k, v in defaults.items():
         row_dict.setdefault(k, v)
-
     return render_template("admin_booking.html", b=row_dict)
 
 
@@ -814,42 +631,30 @@ def admin_action():
     reference = (request.form.get("reference") or "").strip()
     action    = (request.form.get("action") or "").strip()
     note      = (request.form.get("note") or "").strip()
-
     if action not in ("approve", "reject"):
         flash("Invalid action.", "error")
         return redirect(url_for("admin_dashboard"))
 
     new_status = "approved" if action == "approve" else "rejected"
-
     db = get_db()
     row = db.execute("SELECT id FROM bookings WHERE reference=?", (reference,)).fetchone()
     if row is None:
         flash("Booking not found.", "error")
         return redirect(url_for("admin_dashboard"))
 
-    db.execute(
-        "UPDATE bookings SET status=?, admin_note=? WHERE reference=?",
-        (new_status, note or None, reference),
-    )
+    db.execute("UPDATE bookings SET status=?, admin_note=? WHERE reference=?", (new_status, note or None, reference))
     db.commit()
 
     try:
         user_row = db.execute(
-            """SELECT u.email, u.firstname, b.total_price
-               FROM bookings b
-               JOIN users u ON u.id = b.user_id
-               WHERE b.reference = ?""",
+            "SELECT u.email, u.firstname, b.total_price FROM bookings b JOIN users u ON u.id = b.user_id WHERE b.reference = ?",
             (reference,)
         ).fetchone()
-
         if user_row:
             send_booking_status_email(
-                to_email=user_row["email"],
-                firstname=user_row["firstname"],
-                reference=reference,
-                total=user_row["total_price"],
-                status=new_status,
-                note=note,
+                to_email=user_row["email"], firstname=user_row["firstname"],
+                reference=reference, total=user_row["total_price"],
+                status=new_status, note=note,
             )
     except Exception as e:
         print(f"[email] booking status email error: {e}")
@@ -864,4 +669,3 @@ def admin_action():
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
-    
