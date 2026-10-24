@@ -225,21 +225,59 @@ NIN_RE      = re.compile(r"^\d{11}$")
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+# ---------- EMAIL HTML WRAPPER ----------
+def get_email_template(title, body_html):
+    """Wraps the email content in a beautiful Dominion Transport HTML layout."""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: 'Inter', Arial, sans-serif; background-color: #f4f7fa; margin: 0; padding: 0; color: #0b2a3b; }}
+        .container {{ max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(10, 42, 59, 0.1); }}
+        .header {{ background-color: #0a2a3b; padding: 30px 20px; text-align: center; color: #ffffff; }}
+        .header h1 {{ margin: 0; font-size: 24px; font-weight: 700; }}
+        .header span {{ font-weight: 300; color: #7dc9f0; }}
+        .content {{ padding: 30px 40px; line-height: 1.6; font-size: 15px; }}
+        .footer {{ background-color: #f4f7fa; padding: 20px; text-align: center; font-size: 12px; color: #839eae; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #2d9cdb; color: #ffffff; text-decoration: none; border-radius: 30px; font-weight: bold; margin-top: 20px; }}
+        .details-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+        .details-table td {{ padding: 10px; border-bottom: 1px solid #e2edf5; }}
+        .details-table td:first-child {{ color: #5e7a8c; font-weight: 600; }}
+        .details-table td:last-child {{ text-align: right; font-weight: 700; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Dominion <span>Transport</span></h1>
+          <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">{title}</p>
+        </div>
+        <div class="content">
+          {body_html}
+        </div>
+        <div class="footer">
+          &copy; {datetime.now().year} Dominion Transport Solutions. All rights reserved.<br>
+          This is an automated message, please do not reply.
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
 # ---------- BREVO EMAIL SENDER ----------
-def send_email(to_email, subject, body_text, body_html=None):
+def send_email(to_email, subject, body_html):
     """Send an email using Brevo API. Returns True on success."""
     if not brevo_client:
         print("[email] Brevo client not initialized — skipping.")
         return False
 
     try:
-        # Brevo requires HTML content. If only text is provided, we wrap it in a basic HTML tag.
-        html_content = body_html if body_html else f"<html><body><p>{body_text}</p></body></html>"
-
         brevo_client.transactional_emails.send_transac_email(
             subject=subject,
-            html_content=html_content,
-            text_content=body_text,
+            html_content=body_html,
             sender=SendTransacEmailRequestSender(
                 email=EMAIL_FROM,
                 name=COMPANY_NAME
@@ -254,15 +292,100 @@ def send_email(to_email, subject, body_text, body_html=None):
         return False
 
 
+def send_welcome_email(to_email, firstname, username):
+    subject = f"Welcome to {COMPANY_NAME}! 🚀"
+    body = f"""
+        <h2 style="color: #0a2a3b; margin-top: 0;">Hello {firstname}, 👋</h2>
+        <p>Welcome to <strong>{COMPANY_NAME}</strong>! We are thrilled to have you on board.</p>
+        <p>Your account has been successfully created. You can now book rides, send waybills, and transfer goods across Nigeria with ease.</p>
+        <p>Here are your account details:</p>
+        <table class="details-table">
+            <tr><td>Username</td><td>@{username}</td></tr>
+            <tr><td>Email</td><td>{to_email}</td></tr>
+        </table>
+        <p>Ready to get started? Click the button below to sign in and make your first booking.</p>
+        <div style="text-align: center;">
+            <a href="https://transport-app-pnco.onrender.com/login" class="btn">Sign In to Your Account</a>
+        </div>
+        <p style="margin-top: 30px;">Best regards,<br>The Dominion Transport Team</p>
+    """
+    send_email(to_email, subject, get_email_template("Welcome Aboard", body))
+
+
+def send_booking_received_email(to_email, firstname, reference, total_price, pickup, dropoff):
+    subject = f"Booking Received — {reference}"
+    body = f"""
+        <h2 style="color: #0a2a3b; margin-top: 0;">Hi {firstname},</h2>
+        <p>Thank you for choosing Dominion Transport. We have successfully received your booking and your payment receipt is currently under review.</p>
+        <p>Here is a summary of your request:</p>
+        <table class="details-table">
+            <tr><td>Reference</td><td>{reference}</td></tr>
+            <tr><td>Amount Paid</td><td>₦{total_price:,}</td></tr>
+            <tr><td>Pickup</td><td>{pickup}</td></tr>
+            <tr><td>Drop-off</td><td>{dropoff}</td></tr>
+            <tr><td>Status</td><td><span style="color: #f59e0b; font-weight: bold;">PENDING APPROVAL</span></td></tr>
+        </table>
+        <p>Our team will verify your payment shortly. Once approved, a driver will be assigned to your trip and you will receive another email.</p>
+        <p>If you have any questions, feel free to reach out to our support team.</p>
+        <p style="margin-top: 30px;">Safe travels,<br>The Dominion Transport Team</p>
+    """
+    send_email(to_email, subject, get_email_template("Booking Confirmation", body))
+
+
 def send_booking_status_email(to_email, firstname, reference, total, status, note=None):
     if status == "approved":
-        send_email(to_email, f"Booking {reference} Approved", f"Hi {firstname}, your booking {reference} is approved.")
+        subject = f"Booking Approved ✓ — {reference}"
+        body = f"""
+            <h2 style="color: #16a34a; margin-top: 0;">Great news, {firstname}! 🎉</h2>
+            <p>Your booking <strong>{reference}</strong> has been officially <strong>APPROVED</strong>.</p>
+            <p>Our logistics team is currently assigning a vehicle to your request. A driver will contact you shortly using the phone number provided in your booking.</p>
+            <table class="details-table">
+                <tr><td>Reference</td><td>{reference}</td></tr>
+                <tr><td>Amount Confirmed</td><td>₦{total:,}</td></tr>
+                <tr><td>Status</td><td><span style="color: #16a34a; font-weight: bold;">APPROVED</span></td></tr>
+            </table>
+            <p>Thank you for trusting us with your logistics needs.</p>
+        """
     else:
-        send_email(to_email, f"Booking {reference} Rejected", f"Hi {firstname}, your booking was rejected. Reason: {note}")
+        subject = f"Booking Update — {reference}"
+        reason = note or "No specific reason provided."
+        body = f"""
+            <h2 style="color: #dc2626; margin-top: 0;">Update on your booking</h2>
+            <p>Hi {firstname},</p>
+            <p>Unfortunately, we were unable to approve your booking <strong>{reference}</strong> at this time.</p>
+            <table class="details-table">
+                <tr><td>Reference</td><td>{reference}</td></tr>
+                <tr><td>Status</td><td><span style="color: #dc2626; font-weight: bold;">REJECTED</span></td></tr>
+                <tr><td>Reason</td><td>{reason}</td></tr>
+            </table>
+            <p>If you believe this is an error or if you'd like to make a new booking with corrected details, please sign in to your dashboard and try again.</p>
+            <div style="text-align: center;">
+                <a href="https://transport-app-pnco.onrender.com/login" class="btn">Go to Dashboard</a>
+            </div>
+        """
+    send_email(to_email, subject, get_email_template("Booking Status Update", body))
+
 
 def send_admin_new_booking_email(reference, user_name, user_email, vehicle, task, pickup, dropoff, total):
     admin_email = os.environ.get("GMAIL_USER", EMAIL_FROM)
-    send_email(admin_email, f"New Booking {reference}", f"New booking from {user_name}. Amount: ₦{total:,}")
+    subject = f"🔔 New Booking Alert — {reference}"
+    body = f"""
+        <h2 style="color: #0a2a3b; margin-top: 0;">New Booking Received</h2>
+        <p>A customer has just submitted a new booking with payment proof. Please log in to the admin dashboard to verify the receipt.</p>
+        <table class="details-table">
+            <tr><td>Reference</td><td>{reference}</td></tr>
+            <tr><td>Customer</td><td>{user_name} ({user_email})</td></tr>
+            <tr><td>Vehicle</td><td>{vehicle}</td></tr>
+            <tr><td>Task</td><td>{task}</td></tr>
+            <tr><td>Pickup</td><td>{pickup}</td></tr>
+            <tr><td>Drop-off</td><td>{dropoff}</td></tr>
+            <tr><td>Amount</td><td>₦{total:,}</td></tr>
+        </table>
+        <div style="text-align: center;">
+            <a href="https://transport-app-pnco.onrender.com/admin" class="btn">Open Admin Dashboard</a>
+        </div>
+    """
+    send_email(admin_email, subject, get_email_template("Admin Alert", body))
 
 # ------------------------------------------------------------------
 # PRICES & CONSTANTS
@@ -346,7 +469,7 @@ def create():
             db.commit()
 
             # Send Welcome Email
-            send_email(email, f"Welcome to {COMPANY_NAME}!", f"Hi {firstname},\n\nWelcome to {COMPANY_NAME}! Your account is ready.\nUsername: {username}\n\nSign in here to make your first booking.")
+            send_welcome_email(email, firstname, username)
 
             flash("Account created! Please sign in.", "success")
             return redirect(url_for("login"))
@@ -432,11 +555,17 @@ def api_book():
         )
         db.commit()
 
-        # Attempt to send emails but don't crash if they fail
+        # Send booking received emails
         user_row = db.execute("SELECT email, firstname FROM users WHERE id=?", (session["user_id"],)).fetchone()
         if user_row:
-            send_email(user_row["email"], f"Booking {reference} Received", f"Your booking {reference} is pending approval.")
-            send_admin_new_booking_email(reference, session.get("user_name"), user_row["email"], vehicle, task, f"{pickup_state}-{pickup_city}", f"{dropoff_state}-{dropoff_city}", total_price)
+            send_booking_received_email(
+                user_row["email"], user_row["firstname"], reference, total_price,
+                f"{pickup_state} ({pickup_city})", f"{dropoff_state} ({dropoff_city})"
+            )
+            send_admin_new_booking_email(
+                reference, session.get("user_name"), user_row["email"], 
+                vehicle, task, f"{pickup_state}-{pickup_city}", f"{dropoff_state}-{dropoff_city}", total_price
+            )
 
         return jsonify(ok=True, reference=reference, message="Booking submitted.")
     except Exception as e:
