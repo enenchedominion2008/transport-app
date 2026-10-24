@@ -10,7 +10,9 @@ from flask import (
     session, flash, jsonify, send_from_directory, g
 )
 
-import resend
+# ---------- Brevo SDK ----------
+from brevo import Brevo
+from brevo.transactional_emails import SendTransacEmailRequestSender, SendTransacEmailRequestToItem
 
 # ------------------------------------------------------------------
 # CONFIG
@@ -36,14 +38,18 @@ ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD_HASH = generate_password_hash("dominion2025")
 
 # ------------------------------------------------------------------
-# EMAIL CONFIG
+# EMAIL CONFIG (Brevo)
 # ------------------------------------------------------------------
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-EMAIL_FROM     = os.environ.get("EMAIL_FROM", "onboarding@resend.dev")
-COMPANY_NAME   = "Dominion Transport Solutions"
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+EMAIL_FROM    = os.environ.get("EMAIL_FROM", "onboarding@resend.dev")
+COMPANY_NAME  = "Dominion Transport Solutions"
 
-if RESEND_API_KEY:
-    resend.api_key = RESEND_API_KEY
+# Initialize the Brevo client if the key exists
+brevo_client = None
+if BREVO_API_KEY:
+    brevo_client = Brevo(api_key=BREVO_API_KEY)
+else:
+    print("[email] Warning: BREVO_API_KEY is not set. Emails will not be sent.")
 
 
 # ------------------------------------------------------------------
@@ -84,8 +90,6 @@ def init_db():
     """)
 
     # ---------- MIGRATION FIX: REBUILD BOOKINGS TABLE ----------
-    # If the table exists but has the old 'state' column, we must rebuild it 
-    # because we cannot simply drop a NOT NULL column in SQLite.
     cur.execute("PRAGMA table_info(bookings)")
     cols = cur.fetchall()
     
@@ -95,7 +99,6 @@ def init_db():
             print("[init_db] Old 'state' column detected. Rebuilding bookings table...")
             cur.execute("ALTER TABLE bookings RENAME TO bookings_old")
             
-            # Create the fresh table
             cur.execute("""
                 CREATE TABLE bookings (
                     id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,7 +130,6 @@ def init_db():
                 )
             """)
             
-            # Copy data from old table to new table, mapping 'state' to 'dropoff_state'
             cur.execute("""
                 INSERT INTO bookings (
                     id, user_id, reference, vehicle, task, other_task,
@@ -150,7 +152,6 @@ def init_db():
             cur.execute("DROP TABLE bookings_old")
             print("[init_db] Migration complete. Old data preserved.")
 
-    # Create table if it didn't exist at all
     cur.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,23 +225,34 @@ NIN_RE      = re.compile(r"^\d{11}$")
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ---------- BREVO EMAIL SENDER ----------
 def send_email(to_email, subject, body_text, body_html=None):
-    if not RESEND_API_KEY:
+    """Send an email using Brevo API. Returns True on success."""
+    if not brevo_client:
+        print("[email] Brevo client not initialized — skipping.")
         return False
+
     try:
-        params = {
-            "from":    f"{COMPANY_NAME} <{EMAIL_FROM}>",
-            "to":      [to_email],
-            "subject": subject,
-            "text":    body_text
-        }
-        if body_html:
-            params["html"] = body_html
-        resend.Emails.send(params)
+        # Brevo requires HTML content. If only text is provided, we wrap it in a basic HTML tag.
+        html_content = body_html if body_html else f"<html><body><p>{body_text}</p></body></html>"
+
+        brevo_client.transactional_emails.send_transac_email(
+            subject=subject,
+            html_content=html_content,
+            text_content=body_text,
+            sender=SendTransacEmailRequestSender(
+                email=EMAIL_FROM,
+                name=COMPANY_NAME
+            ),
+            to=[SendTransacEmailRequestToItem(email=to_email)]
+        )
+        print(f"[email] Sent to {to_email}: {subject}")
         return True
+
     except Exception as e:
-        print(f"[email error] {e}")
+        print(f"[email] Failed to send to {to_email}: {type(e).__name__} — {e}")
         return False
+
 
 def send_booking_status_email(to_email, firstname, reference, total, status, note=None):
     if status == "approved":
@@ -332,6 +344,10 @@ def create():
                 (firstname, lastname, username, email, dob, nin, saved_filename, generate_password_hash(password), datetime.now().isoformat(timespec="seconds"))
             )
             db.commit()
+
+            # Send Welcome Email
+            send_email(email, f"Welcome to {COMPANY_NAME}!", f"Hi {firstname},\n\nWelcome to {COMPANY_NAME}! Your account is ready.\nUsername: {username}\n\nSign in here to make your first booking.")
+
             flash("Account created! Please sign in.", "success")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
