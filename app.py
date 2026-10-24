@@ -10,7 +10,6 @@ from flask import (
     session, flash, jsonify, send_from_directory, g
 )
 
-# ---------- Resend (HTTP email API — works on Render free tier) ----------
 import resend
 
 # ------------------------------------------------------------------
@@ -31,14 +30,13 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
 
 # ------------------------------------------------------------------
-# ADMIN CREDENTIALS (change these!)
+# ADMIN CREDENTIALS
 # ------------------------------------------------------------------
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD_HASH = generate_password_hash("dominion2025")
 
-
 # ------------------------------------------------------------------
-# EMAIL CONFIG — pulled from Render environment variables
+# EMAIL CONFIG
 # ------------------------------------------------------------------
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 EMAIL_FROM     = os.environ.get("EMAIL_FROM", "onboarding@resend.dev")
@@ -66,7 +64,7 @@ def close_db(exception=None):
 
 
 def init_db():
-    """Create tables if they don't exist (adds new columns to existing DB)."""
+    """Create tables and handle migrations."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -85,6 +83,74 @@ def init_db():
         )
     """)
 
+    # ---------- MIGRATION FIX: REBUILD BOOKINGS TABLE ----------
+    # If the table exists but has the old 'state' column, we must rebuild it 
+    # because we cannot simply drop a NOT NULL column in SQLite.
+    cur.execute("PRAGMA table_info(bookings)")
+    cols = cur.fetchall()
+    
+    if cols:
+        col_names = [c[1] for c in cols]
+        if "state" in col_names:
+            print("[init_db] Old 'state' column detected. Rebuilding bookings table...")
+            cur.execute("ALTER TABLE bookings RENAME TO bookings_old")
+            
+            # Create the fresh table
+            cur.execute("""
+                CREATE TABLE bookings (
+                    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id            INTEGER,
+                    reference          TEXT NOT NULL UNIQUE,
+                    vehicle            TEXT NOT NULL,
+                    task               TEXT NOT NULL,
+                    other_task         TEXT,
+                    pickup_state       TEXT,
+                    pickup_city        TEXT,
+                    pickup_address     TEXT,
+                    pickup_contact     TEXT,
+                    pickup_phone       TEXT,
+                    dropoff_state      TEXT,
+                    dropoff_city       TEXT,
+                    dropoff_address    TEXT,
+                    dropoff_contact    TEXT,
+                    dropoff_phone      TEXT,
+                    vehicle_price      INTEGER NOT NULL,
+                    state_price        INTEGER NOT NULL,
+                    total_price        INTEGER NOT NULL,
+                    payment_bank       TEXT,
+                    payment_reference  TEXT,
+                    payment_receipt    TEXT,
+                    status             TEXT NOT NULL DEFAULT 'pending',
+                    admin_note         TEXT,
+                    created_at         TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            """)
+            
+            # Copy data from old table to new table, mapping 'state' to 'dropoff_state'
+            cur.execute("""
+                INSERT INTO bookings (
+                    id, user_id, reference, vehicle, task, other_task,
+                    pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
+                    dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
+                    vehicle_price, state_price, total_price,
+                    payment_bank, payment_reference, payment_receipt,
+                    status, admin_note, created_at
+                )
+                SELECT 
+                    id, user_id, reference, vehicle, task, other_task,
+                    NULL, NULL, NULL, NULL, NULL,
+                    state, NULL, NULL, NULL, NULL,
+                    vehicle_price, state_price, total_price,
+                    payment_bank, payment_reference, payment_receipt,
+                    status, admin_note, created_at
+                FROM bookings_old
+            """)
+            
+            cur.execute("DROP TABLE bookings_old")
+            print("[init_db] Migration complete. Old data preserved.")
+
+    # Create table if it didn't exist at all
     cur.execute("""
         CREATE TABLE IF NOT EXISTS bookings (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,19 +159,16 @@ def init_db():
             vehicle            TEXT NOT NULL,
             task               TEXT NOT NULL,
             other_task         TEXT,
-
             pickup_state       TEXT,
             pickup_city        TEXT,
             pickup_address     TEXT,
             pickup_contact     TEXT,
             pickup_phone       TEXT,
-
             dropoff_state      TEXT,
             dropoff_city       TEXT,
             dropoff_address    TEXT,
             dropoff_contact    TEXT,
             dropoff_phone      TEXT,
-
             vehicle_price      INTEGER NOT NULL,
             state_price        INTEGER NOT NULL,
             total_price        INTEGER NOT NULL,
@@ -119,25 +182,10 @@ def init_db():
         )
     """)
 
-    # ---------- SAFE MIGRATION ----------
-    cur.execute("PRAGMA table_info(bookings)")
-    existing = {row[1] for row in cur.fetchall()}
-    new_cols = [
-        ("pickup_state",    "TEXT"), ("pickup_city",     "TEXT"),
-        ("pickup_address",  "TEXT"), ("pickup_contact",  "TEXT"),
-        ("pickup_phone",    "TEXT"), ("dropoff_state",   "TEXT"),
-        ("dropoff_city",    "TEXT"), ("dropoff_address", "TEXT"),
-        ("dropoff_contact", "TEXT"), ("dropoff_phone",   "TEXT"),
-    ]
-    for name, coltype in new_cols:
-        if name not in existing:
-            cur.execute(f"ALTER TABLE bookings ADD COLUMN {name} {coltype}")
-
     conn.commit()
     conn.close()
 
 
-# Run init_db() on every startup so migrations always apply
 with app.app_context():
     try:
         init_db()
@@ -157,7 +205,6 @@ def login_required(view):
         return view(*args, **kwargs)
     return wrapped
 
-
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -167,165 +214,91 @@ def admin_required(view):
         return view(*args, **kwargs)
     return wrapped
 
-
 # ------------------------------------------------------------------
-# VALIDATION HELPERS
+# VALIDATION & EMAIL HELPERS
 # ------------------------------------------------------------------
 EMAIL_RE    = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.]{3,20}$")
 NIN_RE      = re.compile(r"^\d{11}$")
-ACCT_RE     = re.compile(r"^\d{10}$")
-
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-# ------------------------------------------------------------------
-# EMAIL HELPER (via Resend HTTP API)
-# ------------------------------------------------------------------
 def send_email(to_email, subject, body_text, body_html=None):
     if not RESEND_API_KEY:
-        print("[email] RESEND_API_KEY not set — skipping.")
         return False
     try:
         params = {
             "from":    f"{COMPANY_NAME} <{EMAIL_FROM}>",
             "to":      [to_email],
             "subject": subject,
+            "text":    body_text
         }
         if body_html:
             params["html"] = body_html
-            params["text"] = body_text
-        else:
-            params["text"] = body_text
-        result = resend.Emails.send(params)
-        print(f"[email] Sent to {to_email}: {subject}")
+        resend.Emails.send(params)
         return True
     except Exception as e:
-        print(f"[email] Failed to send to {to_email}: {type(e).__name__} — {e}")
+        print(f"[email error] {e}")
         return False
-
 
 def send_booking_status_email(to_email, firstname, reference, total, status, note=None):
     if status == "approved":
-        subject = f"Booking {reference} — Approved ✓"
-        text = (
-            f"Hi {firstname},\n\nGreat news! Your booking {reference} has been APPROVED.\n\n"
-            f"Amount received: ₦{total:,}\nReference: {reference}\n\n"
-            f"A driver will contact you shortly with pickup details.\n\n"
-            f"Thank you for choosing {COMPANY_NAME}.\n"
-        )
-        html = f"<h1>Booking Approved</h1><p>Hi {firstname}, your booking {reference} has been approved.</p>"
+        send_email(to_email, f"Booking {reference} Approved", f"Hi {firstname}, your booking {reference} is approved.")
     else:
-        subject = f"Booking {reference} — Rejected"
-        reason  = note or "No reason provided."
-        text = (
-            f"Hi {firstname},\n\nWe're sorry to let you know that your booking {reference} "
-            f"was NOT approved.\n\nReason: {reason}\n\n"
-            f"If you think this is a mistake, please reply to this email or submit a new booking.\n\n"
-            f"— {COMPANY_NAME}\n"
-        )
-        html = f"<h1>Booking Update</h1><p>Hi {firstname}, your booking was not approved. Reason: {reason}</p>"
-    return send_email(to_email, subject, text, html)
+        send_email(to_email, f"Booking {reference} Rejected", f"Hi {firstname}, your booking was rejected. Reason: {note}")
 
-
-def send_admin_new_booking_email(reference, user_name, user_email, vehicle, task, pickup_state, dropoff_state, total):
-    if not RESEND_API_KEY:
-        return False
+def send_admin_new_booking_email(reference, user_name, user_email, vehicle, task, pickup, dropoff, total):
     admin_email = os.environ.get("GMAIL_USER", EMAIL_FROM)
-    subject = f"🔔 New Booking {reference} — ₦{total:,}"
-    text = (
-        f"New booking received!\n\nReference:  {reference}\n"
-        f"Customer:   {user_name} ({user_email})\n"
-        f"Vehicle:    {vehicle}\nTask:       {task}\n"
-        f"Pickup:     {pickup_state}\nDrop-off:   {dropoff_state}\n"
-        f"Amount:     ₦{total:,}\n\nLog in to the admin panel to approve or reject.\n"
-    )
-    html = f"<h1>New Booking</h1><p>Reference: {reference}</p>"
-    return send_email(admin_email, subject, text, html)
-
+    send_email(admin_email, f"New Booking {reference}", f"New booking from {user_name}. Amount: ₦{total:,}")
 
 # ------------------------------------------------------------------
-# COMPANY BANK DETAILS & PRICES
+# PRICES & CONSTANTS
 # ------------------------------------------------------------------
-COMPANY_BANK = {
-    "bank_name":      "Fidelity Bank",
-    "account_number": "6153338187",
-    "account_name":   "Doinion Enenche",
-}
+COMPANY_BANK = {"bank_name": "Fidelity Bank", "account_number": "6153338187", "account_name": "Doinion Enenche"}
 
-VEHICLE_PRICES = {
-    "bike": 5000, "car": 10000, "suv": 15000, "van": 18000,
-    "truck-small": 25000, "truck-large": 40000, "trailer": 60000,
-}
+VEHICLE_PRICES = {"bike": 5000, "car": 10000, "suv": 15000, "van": 18000, "truck-small": 25000, "truck-large": 40000, "trailer": 60000}
 
 STATE_PRICES = {
-    "abia": 15000, "adamawa": 28000, "akwa-ibom": 22000, "anambra": 16000,
-    "bauchi": 27000, "bayelsa": 23000, "benue": 24000, "borno": 35000,
-    "cross-river": 21000, "delta": 17000, "ebonyi": 18000, "edo": 15000,
-    "ekiti": 14000, "enugu": 16000, "fct": 10000, "gombe": 29000,
-    "imo": 17000, "jigawa": 30000, "kaduna": 25000, "kano": 26000,
-    "katsina": 29000, "kebbi": 31000, "kogi": 13000, "kwara": 14000,
-    "lagos": 8000, "nasarawa": 20000, "niger": 22000, "ogun": 10000,
-    "ondo": 13000, "osun": 14000, "oyo": 12000, "plateau": 25000,
-    "rivers": 18000, "sokoto": 32000, "taraba": 29000, "yobe": 34000,
-    "zamfara": 33000,
+    "abia": 15000, "adamawa": 28000, "akwa-ibom": 22000, "anambra": 16000, "bauchi": 27000,
+    "bayelsa": 23000, "benue": 24000, "borno": 35000, "cross-river": 21000, "delta": 17000,
+    "ebonyi": 18000, "edo": 15000, "ekiti": 14000, "enugu": 16000, "fct": 10000, "gombe": 29000,
+    "imo": 17000, "jigawa": 30000, "kaduna": 25000, "kano": 26000, "katsina": 29000, "kebbi": 31000,
+    "kogi": 13000, "kwara": 14000, "lagos": 8000, "nasarawa": 20000, "niger": 22000, "ogun": 10000,
+    "ondo": 13000, "osun": 14000, "oyo": 12000, "plateau": 25000, "rivers": 18000, "sokoto": 32000,
+    "taraba": 29000, "yobe": 34000, "zamfara": 33000
 }
 
-BANKS = [
-    "access", "citibank", "ecobank", "fidelity", "fcmb", "firstbank",
-    "gtbank", "heritage", "keystone", "kuda", "opay", "palmpay",
-    "polaris", "providus", "stanbic", "standard", "sterling", "uba",
-    "union", "unity", "wema", "zenith",
-]
-
+BANKS = ["access", "citibank", "ecobank", "fidelity", "fcmb", "firstbank", "gtbank", "heritage", "keystone", "kuda", "opay", "palmpay", "polaris", "providus", "stanbic", "standard", "sterling", "uba", "union", "unity", "wema", "zenith"]
 
 def generate_reference():
     db = get_db()
     today = datetime.now().strftime("%Y%m%d")
-    count = db.execute(
-        "SELECT COUNT(*) FROM bookings WHERE reference LIKE ?",
-        (f"DOM-{today}-%",)
-    ).fetchone()[0]
+    count = db.execute("SELECT COUNT(*) FROM bookings WHERE reference LIKE ?", (f"DOM-{today}-%",)).fetchone()[0]
     return f"DOM-{today}-{count + 1:04d}"
 
-
 # ==================================================================
-# PUBLIC ROUTES
+# ROUTES
 # ==================================================================
 
 @app.route("/")
 def home():
     return render_template("about_website.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         identifier = (request.form.get("identifier") or "").strip()
         password   = (request.form.get("password") or "")
-        if not identifier or not password:
-            flash("Please enter your email/username and password.", "error")
-            return redirect(url_for("login"))
         db = get_db()
-        user = db.execute(
-            "SELECT * FROM users WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)",
-            (identifier, identifier),
-        ).fetchone()
-        if user is None:
-            flash("No account found with that email or username.", "error")
-            return redirect(url_for("login"))
-        if not check_password_hash(user["password_hash"], password):
-            flash("Incorrect password. Try again.", "error")
-            return redirect(url_for("login"))
-        session["user_id"]   = user["id"]
-        session["username"]  = user["username"]
-        session["user_name"] = f"{user['firstname']} {user['lastname']}"
-        flash(f"Welcome back, {user['firstname']}!", "success")
-        return redirect(url_for("dashboard"))
+        user = db.execute("SELECT * FROM users WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)", (identifier, identifier)).fetchone()
+        if user and check_password_hash(user["password_hash"], password):
+            session["user_id"]   = user["id"]
+            session["username"]  = user["username"]
+            session["user_name"] = f"{user['firstname']} {user['lastname']}"
+            return redirect(url_for("dashboard"))
+        flash("Invalid credentials.", "error")
     return render_template("login.html")
-
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
@@ -338,69 +311,38 @@ def create():
         nin       = (request.form.get("nin")       or "").strip()
         password  = request.form.get("password") or ""
 
-        errors = []
-        if not firstname or not lastname: errors.append("First and last name are required.")
-        if not USERNAME_RE.match(username): errors.append("Username must be 3–20 characters (letters, numbers, _ or .).")
-        if not EMAIL_RE.match(email): errors.append("Please enter a valid email address.")
-        if not dob: errors.append("Date of birth is required.")
-        if not NIN_RE.match(nin): errors.append("NIN must be exactly 11 digits.")
-        if len(password) < 6: errors.append("Password must be at least 6 characters.")
+        if not all([firstname, lastname, username, email, dob, nin, password]):
+            flash("All fields are required.", "error")
+            return redirect(url_for("create"))
 
         file = request.files.get("nin_photo")
-        saved_filename = None
-        if not file or file.filename == "": errors.append("Please upload your NIN photo/slip.")
-        elif not allowed_file(file.filename): errors.append("File type not allowed. Use JPG, PNG, or PDF.")
-
-        if errors:
-            for e in errors: flash(e, "error")
+        if not file or not allowed_file(file.filename):
+            flash("Valid NIN photo required.", "error")
             return redirect(url_for("create"))
 
         db = get_db()
-        if db.execute("SELECT 1 FROM users WHERE LOWER(username)=LOWER(?)", (username,)).fetchone():
-            flash("That username is already taken. Please choose another.", "error")
-            return redirect(url_for("create"))
-        if db.execute("SELECT 1 FROM users WHERE LOWER(email)=LOWER(?)", (email,)).fetchone():
-            flash("An account with that email already exists.", "error")
-            return redirect(url_for("create"))
-        if db.execute("SELECT 1 FROM users WHERE nin=?", (nin,)).fetchone():
-            flash("An account with that NIN already exists.", "error")
-            return redirect(url_for("create"))
-
-        original  = secure_filename(file.filename)
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        saved_filename = f"{nin}_{timestamp}_{original}"
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_filename))
-
         try:
+            original  = secure_filename(file.filename)
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            saved_filename = f"{nin}_{timestamp}_{original}"
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], saved_filename))
+            
             db.execute(
                 "INSERT INTO users (firstname, lastname, username, email, dob, nin, nin_photo, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (firstname, lastname, username, email, dob, nin, saved_filename, generate_password_hash(password), datetime.now().isoformat(timespec="seconds")),
+                (firstname, lastname, username, email, dob, nin, saved_filename, generate_password_hash(password), datetime.now().isoformat(timespec="seconds"))
             )
             db.commit()
-        except sqlite3.IntegrityError as ex:
-            flash(f"Could not create account: {ex}", "error")
+            flash("Account created! Please sign in.", "success")
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            flash("Username, Email, or NIN already exists.", "error")
             return redirect(url_for("create"))
-
-        try:
-            send_email(
-                to_email=email,
-                subject=f"Welcome to {COMPANY_NAME}!",
-                body_text=f"Hi {firstname},\n\nWelcome to {COMPANY_NAME}! Your account is ready.\nUsername: {username}\n\nSign in here to make your first booking.\n\n— The {COMPANY_NAME} team",
-            )
-        except Exception as e:
-            print(f"[email] Welcome email error: {e}")
-
-        flash("Account created successfully. Please sign in.", "success")
-        return redirect(url_for("login"))
     return render_template("create.html")
-
 
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("You have been signed out.", "info")
     return redirect(url_for("login"))
-
 
 @app.route("/dashboard")
 @login_required
@@ -409,7 +351,6 @@ def dashboard():
     user = db.execute("SELECT * FROM users WHERE id=?", (session["user_id"],)).fetchone()
     bookings = db.execute("SELECT * FROM bookings WHERE user_id=? ORDER BY id DESC", (session["user_id"],)).fetchall()
     return render_template("dashbord.html", user=user, bookings=bookings, company_bank=COMPANY_BANK)
-
 
 @app.route("/api/book", methods=["POST"])
 @login_required
@@ -434,35 +375,19 @@ def api_book():
         payment_bank = (request.form.get("paymentBank") or "").strip()
         payment_ref  = (request.form.get("paymentReference") or "").strip()
 
-        if vehicle not in VEHICLE_PRICES:
-            return jsonify(ok=False, error="Invalid vehicle type."), 400
-        if task not in ("ride", "waybill", "transfer", "other"):
-            return jsonify(ok=False, error="Invalid task type."), 400
-        if task == "other" and not other_task:
-            return jsonify(ok=False, error="Please describe your custom task."), 400
-        if pickup_state not in STATE_PRICES:
-            return jsonify(ok=False, error="Please select a valid pickup state."), 400
-        if dropoff_state not in STATE_PRICES:
-            return jsonify(ok=False, error="Please select a valid drop-off state."), 400
-        if not all([pickup_city, pickup_address, pickup_contact, pickup_phone]):
-            return jsonify(ok=False, error="Please complete all pickup details."), 400
-        if not all([dropoff_city, dropoff_address, dropoff_contact, dropoff_phone]):
-            return jsonify(ok=False, error="Please complete all drop-off details."), 400
-        if payment_bank not in BANKS:
-            return jsonify(ok=False, error="Please select the bank you paid from."), 400
-        if not payment_ref:
-            return jsonify(ok=False, error="Please enter your payment reference."), 400
+        if vehicle not in VEHICLE_PRICES: return jsonify(ok=False, error="Invalid vehicle."), 400
+        if pickup_state not in STATE_PRICES: return jsonify(ok=False, error="Invalid pickup state."), 400
+        if dropoff_state not in STATE_PRICES: return jsonify(ok=False, error="Invalid dropoff state."), 400
+        if not all([pickup_city, pickup_address, pickup_contact, pickup_phone]): return jsonify(ok=False, error="Missing pickup details."), 400
+        if not all([dropoff_city, dropoff_address, dropoff_contact, dropoff_phone]): return jsonify(ok=False, error="Missing dropoff details."), 400
+        if not payment_ref: return jsonify(ok=False, error="Missing payment reference."), 400
 
         receipt = request.files.get("paymentReceipt")
-        if not receipt or receipt.filename == "":
-            return jsonify(ok=False, error="Please upload your payment receipt."), 400
-        if not allowed_file(receipt.filename):
-            return jsonify(ok=False, error="Receipt must be JPG, PNG, or PDF."), 400
+        if not receipt or not allowed_file(receipt.filename):
+            return jsonify(ok=False, error="Valid receipt required."), 400
 
         vehicle_price = VEHICLE_PRICES[vehicle]
-        pickup_price  = STATE_PRICES[pickup_state]
-        dropoff_price = STATE_PRICES[dropoff_state]
-        state_price   = max(pickup_price, dropoff_price)
+        state_price   = max(STATE_PRICES[pickup_state], STATE_PRICES[dropoff_state])
         total_price   = vehicle_price + state_price
         reference     = generate_reference()
 
@@ -478,78 +403,34 @@ def api_book():
                 pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
                 dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
                 vehicle_price, state_price, total_price,
-                payment_bank, payment_reference, payment_receipt,
-                status, created_at)
+                payment_bank, payment_reference, payment_receipt, status, created_at)
                VALUES (?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?)""",
             (
                 session["user_id"], reference, vehicle, task, other_task or None,
                 pickup_state, pickup_city, pickup_address, pickup_contact, pickup_phone,
                 dropoff_state, dropoff_city, dropoff_address, dropoff_contact, dropoff_phone,
                 vehicle_price, state_price, total_price,
-                payment_bank, payment_ref, saved_receipt,
-                "pending",
+                payment_bank, payment_ref, saved_receipt, "pending",
                 datetime.now().isoformat(timespec="seconds"),
             ),
         )
         db.commit()
 
-        user_row = None
-        try:
-            user_row = db.execute("SELECT email, firstname FROM users WHERE id=?", (session["user_id"],)).fetchone()
-        except Exception as e:
-            print(f"[api_book] user lookup error: {e}")
-
+        # Attempt to send emails but don't crash if they fail
+        user_row = db.execute("SELECT email, firstname FROM users WHERE id=?", (session["user_id"],)).fetchone()
         if user_row:
-            try:
-                send_email(
-                    to_email=user_row["email"],
-                    subject=f"Booking {reference} — Received",
-                    body_text=f"Hi {user_row['firstname']},\n\nWe've received your booking {reference} for ₦{total_price:,}.\nPickup: {pickup_state} — {pickup_city}\nDrop-off: {dropoff_state} — {dropoff_city}\nStatus: PENDING — under review.\n\n— {COMPANY_NAME}",
-                )
-            except Exception as e:
-                print(f"[api_book] user email error: {e}")
+            send_email(user_row["email"], f"Booking {reference} Received", f"Your booking {reference} is pending approval.")
+            send_admin_new_booking_email(reference, session.get("user_name"), user_row["email"], vehicle, task, f"{pickup_state}-{pickup_city}", f"{dropoff_state}-{dropoff_city}", total_price)
 
-        try:
-            send_admin_new_booking_email(
-                reference=reference,
-                user_name=session.get("user_name", "Customer"),
-                user_email=user_row["email"] if user_row else "unknown",
-                vehicle=vehicle,
-                task=task if task != "other" else f"Other: {other_task}",
-                pickup_state=f"{pickup_state} — {pickup_city}",
-                dropoff_state=f"{dropoff_state} — {dropoff_city}",
-                total=total_price,
-            )
-        except Exception as e:
-            print(f"[api_book] admin email error: {e}")
-
-        return jsonify(ok=True, reference=reference, total=total_price, status="pending", message=f"Booking {reference} submitted for verification.")
-
+        return jsonify(ok=True, reference=reference, message="Booking submitted.")
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        print(f"[api_book] FATAL: {e}\n{tb}")
-        return jsonify(ok=False, error=f"Server error: {type(e).__name__}: {str(e)}"), 500
-
-
-@app.route("/api/bookings")
-@login_required
-def api_bookings():
-    db = get_db()
-    rows = db.execute(
-        """SELECT reference, vehicle, task, other_task,
-                  pickup_state, pickup_city, dropoff_state, dropoff_city,
-                  total_price, status, created_at
-           FROM bookings WHERE user_id=? ORDER BY id DESC""",
-        (session["user_id"],),
-    ).fetchall()
-    return jsonify(ok=True, bookings=[dict(r) for r in rows])
-
+        print(f"[api_book] FATAL: {e}\n{traceback.format_exc()}")
+        return jsonify(ok=False, error=f"Server error: {str(e)}"), 500
 
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
-
 
 # ==================================================================
 # ADMIN ROUTES
@@ -558,25 +439,17 @@ def uploaded_file(filename):
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        username = (request.form.get("username") or "").strip()
-        password = (request.form.get("password") or "")
-        if username != ADMIN_USERNAME or not check_password_hash(ADMIN_PASSWORD_HASH, password):
-            flash("Invalid admin credentials.", "error")
-            return redirect(url_for("admin_login"))
-        session["is_admin"] = True
-        session["admin_username"] = username
-        flash("Welcome, admin.", "success")
-        return redirect(url_for("admin_dashboard"))
+        if request.form.get("username") == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, request.form.get("password")):
+            session["is_admin"] = True
+            session["admin_username"] = ADMIN_USERNAME
+            return redirect(url_for("admin_dashboard"))
+        flash("Invalid admin credentials.", "error")
     return render_template("admin_login.html")
-
 
 @app.route("/admin/logout")
 def admin_logout():
-    session.pop("is_admin", None)
-    session.pop("admin_username", None)
-    flash("Admin signed out.", "info")
+    session.clear()
     return redirect(url_for("admin_login"))
-
 
 @app.route("/admin")
 @admin_required
@@ -584,88 +457,50 @@ def admin_dashboard():
     status_filter = request.args.get("status", "all")
     db = get_db()
     if status_filter == "all":
-        rows = db.execute(
-            "SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id ORDER BY b.id DESC"
-        ).fetchall()
+        rows = db.execute("SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id ORDER BY b.id DESC").fetchall()
     else:
-        rows = db.execute(
-            "SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.status = ? ORDER BY b.id DESC",
-            (status_filter,),
-        ).fetchall()
+        rows = db.execute("SELECT b.*, u.firstname, u.lastname, u.username, u.email FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.status = ? ORDER BY b.id DESC", (status_filter,)).fetchall()
 
     counts = {
-        "all":      db.execute("SELECT COUNT(*) FROM bookings").fetchone()[0],
-        "pending":  db.execute("SELECT COUNT(*) FROM bookings WHERE status='pending'").fetchone()[0],
+        "all": db.execute("SELECT COUNT(*) FROM bookings").fetchone()[0],
+        "pending": db.execute("SELECT COUNT(*) FROM bookings WHERE status='pending'").fetchone()[0],
         "approved": db.execute("SELECT COUNT(*) FROM bookings WHERE status='approved'").fetchone()[0],
         "rejected": db.execute("SELECT COUNT(*) FROM bookings WHERE status='rejected'").fetchone()[0],
     }
     return render_template("admin.html", bookings=rows, counts=counts, status_filter=status_filter, admin_username=session.get("admin_username"))
 
-
 @app.route("/admin/booking/<reference>")
 @admin_required
 def admin_booking_detail(reference):
     db = get_db()
-    row = db.execute(
-        "SELECT b.*, u.firstname, u.lastname, u.username, u.email, u.nin, u.dob FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.reference = ?",
-        (reference,),
-    ).fetchone()
-    if row is None:
-        flash("Booking not found.", "error")
+    row = db.execute("SELECT b.*, u.firstname, u.lastname, u.username, u.email, u.nin, u.dob FROM bookings b LEFT JOIN users u ON u.id = b.user_id WHERE b.reference = ?", (reference,)).fetchone()
+    if not row:
         return redirect(url_for("admin_dashboard"))
     row_dict = dict(row)
-    defaults = {
-        "pickup_state": None, "pickup_city": None, "pickup_address": None,
-        "pickup_contact": None, "pickup_phone": None,
-        "dropoff_state": None, "dropoff_city": None, "dropoff_address": None,
-        "dropoff_contact": None, "dropoff_phone": None,
-    }
-    for k, v in defaults.items():
-        row_dict.setdefault(k, v)
+    for k in ["pickup_state", "pickup_city", "pickup_address", "pickup_contact", "pickup_phone", "dropoff_state", "dropoff_city", "dropoff_address", "dropoff_contact", "dropoff_phone"]:
+        row_dict.setdefault(k, None)
     return render_template("admin_booking.html", b=row_dict)
-
 
 @app.route("/admin/action", methods=["POST"])
 @admin_required
 def admin_action():
-    reference = (request.form.get("reference") or "").strip()
-    action    = (request.form.get("action") or "").strip()
-    note      = (request.form.get("note") or "").strip()
-    if action not in ("approve", "reject"):
-        flash("Invalid action.", "error")
-        return redirect(url_for("admin_dashboard"))
-
+    reference = request.form.get("reference")
+    action = request.form.get("action")
+    note = request.form.get("note")
+    
     new_status = "approved" if action == "approve" else "rejected"
     db = get_db()
-    row = db.execute("SELECT id FROM bookings WHERE reference=?", (reference,)).fetchone()
-    if row is None:
-        flash("Booking not found.", "error")
-        return redirect(url_for("admin_dashboard"))
-
-    db.execute("UPDATE bookings SET status=?, admin_note=? WHERE reference=?", (new_status, note or None, reference))
+    db.execute("UPDATE bookings SET status=?, admin_note=? WHERE reference=?", (new_status, note, reference))
     db.commit()
 
-    try:
-        user_row = db.execute(
-            "SELECT u.email, u.firstname, b.total_price FROM bookings b JOIN users u ON u.id = b.user_id WHERE b.reference = ?",
-            (reference,)
-        ).fetchone()
-        if user_row:
-            send_booking_status_email(
-                to_email=user_row["email"], firstname=user_row["firstname"],
-                reference=reference, total=user_row["total_price"],
-                status=new_status, note=note,
-            )
-    except Exception as e:
-        print(f"[email] booking status email error: {e}")
+    user_row = db.execute("SELECT u.email, u.firstname, b.total_price FROM bookings b JOIN users u ON u.id = b.user_id WHERE b.reference = ?", (reference,)).fetchone()
+    if user_row:
+        send_booking_status_email(user_row["email"], user_row["firstname"], reference, user_row["total_price"], new_status, note)
 
     flash(f"Booking {reference} marked as {new_status.upper()}.", "success")
     return redirect(url_for("admin_booking_detail", reference=reference))
 
-
-# ------------------------------------------------------------------
-# ENTRY POINT
-# ------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
+    
